@@ -9,7 +9,10 @@ npm install vue@3.2.13
 npm install vue-router
 ```
 
-## 3. postcss 업데이트
+## 3. postcss 업데이트 (GitHub push 에러 수정 위해)
 ```bash
-    npm install postcss@^8.4.31
+npm install postcss@^8.4.31
+rm package-lock.json
+rm -rf node_modules
+npm install
 ```
