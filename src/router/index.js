@@ -2,12 +2,18 @@
 
 import { createRouter, createWebHistory } from 'vue-router'; // createRouter와 createWebHistory를 가져옵니다.
 import HomePage from '../components/HomePage.vue';
+import QuizForm from '@/components/QuizForm.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: HomePage
+  },
+  {
+    path: '/quizForm',
+    name: "QuizForm",
+    component: QuizForm
   }
 ];
 
