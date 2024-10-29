@@ -103,3 +103,67 @@ App.vue 파일에 roter-link 태그를 사용해서 네비게이션을 구현할
 </template>
 ```
 위의 코드와 같이 작성하면 Home 이라는 글씨를 눌렀을 때 "/" path 로 이동할 수 있다.
+
+## 3. App.vue 파일의 역할
+App.vue 파일은 Vue.js 애플리케이션에서 중요한 역할을 하는 루트 컴포넌트입니다. 이 파일은 애플리케이션의 전체 구조와 기본적인 UI 를 정의하는 데 사용됩니다.
+
+### 3-1. 루트 컴포넌트
+App.vue 는 Vue 애플리케이션의 가장 상위 컴포넌트로, 모든 다른 컴포넌트는 이 컴포넌트 안에서 렌더링됩니다. Vue 인스턴스는 App.vue 를 루트 컴포넌트로 사용하여 애플리케이션을 시작합니다.
+
+### 3-2. 라우터 설정
+App.vue 파일 내에 `<`router-view`>` 를 포함하여 현재 활성화된 라우트에 해당하는 컴포넌트를 렌더링합니다. 이를 통해 사용자가 URL 을 변경할 때 다른 컴포넌트를 표시할 수 있습니다.
+
+### 3-3. 전역 스타일 및 레이아웃
+App.vue 에서 정의된 CSS 스타일은 애플리케이션의 전반적인 스타일에 적용될 수 있습니다. 기본적인 레이아웃이나 스타일을 설정하여 모든 페이지에 일관성을 부여합니다.
+
+### 3-4. 내비게이션
+애플리케이션의 내비게이션 구조를 설정하는 데 사용될 수 있습니다. 예를 들어, router-link 를 사용하여 다른 페이지로 이동할 수 있는 링크를 포함할 수 있습니다.
+
+### 3-5. 상태 관리
+App.vue 에서 관리되는 데이터나 메서드는 하위 컴포넌트에서 사용할 수 있습니다. 이를 통해 여러 컴포넌트 간의 상태를 공유할 수 있습니다.
+
+### 3-6. 이벤트 처리
+애플리케이션 전역에서 발생하는 이벤트를 처리하는 데 사용할 수 있습니다. 예를 들어, 사용자 행동에 따라 특정 작업을 수행하도록 설정할 수 있습니다.
+
+```vue
+<template>
+  <div id="app">
+    <nav>
+      <router-link to="/">Home</router-link>
+      <router-link to="/about">About</router-link>
+    </nav>
+    <router-view></router-view> <!-- 현재 라우트에 해당하는 컴포넌트를 렌더링 -->
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'App' // 컴포넌트 이름
+}
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+</style>
+```
+
+## 4. 요약 및 정리
+
+### 4-1. 파일 작성
+- src/components 에서 .vue 파일을 통해 개발하면 된다.
+- .vue 파일은 template, script, style 태그를 포함할 수 있다.
+- 파일을 모두 작성하고 나서 `<`script`>` 태그 내에 export default {name: '{컴포넌트 이름}'} 구문을 작성하면 외부에서 사용할 수 있게 된다.
+
+### 4-2. 라우터 설정에서 import
+- src/router/index.js 에서 해당 컴포넌트를 import 하여 라우팅에 사용할 수 있다.
+- { path: '{path}', name: '{하고 싶은 이름}', component'{export 한 컴포넌트 이름}'} 으로 라우터 파일에 연동할 수 있다.
+- 라우터 파일은 js 파일이라 마자막에 export default router; 이렇게 해주면 된다.
+
+### 4-3. App.view 파일에서 설정
+- 라우팅을 하는 과정에서 반드시 내용을 추가해야 하는 건 아니다.
+- 네비게이션 바가 필요한 경우에는 App.view 파일을 이용할 수 있다.
