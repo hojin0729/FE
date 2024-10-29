@@ -1,19 +1,18 @@
+<!-- Vue 컴포넌트. 라우터 링크를 사용하여 페이지를 이동할 수 있다. -->
 <template>
   <div id="app">
-    <QuizForm />
+    <nav>
+      <router-link to="/">Hello</router-link>
+    </nav>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import QuizForm from './components/QuizForm.vue';
-
 export default {
-  components: {
-    QuizForm,
-  },
-};
+  name: 'App'
+}
 </script>
-
 
 <style>
 #app {
