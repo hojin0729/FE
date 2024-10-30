@@ -158,6 +158,7 @@ export default {
 - src/components 에서 .vue 파일을 통해 개발하면 된다.
 - .vue 파일은 template, script, style 태그를 포함할 수 있다.
 - 파일을 모두 작성하고 나서 `<`script`>` 태그 내에 export default {name: '{컴포넌트 이름}'} 구문을 작성하면 외부에서 사용할 수 있게 된다.
+- name: '{컴포넌트 이름}' 은 선택이다. 기본적으로 파일 이름을 따라간다.
 
 ### 4-2. 라우터 설정에서 import
 - src/router/index.js 에서 해당 컴포넌트를 import 하여 라우팅에 사용할 수 있다.
@@ -166,4 +167,4 @@ export default {
 
 ### 4-3. App.view 파일에서 설정
 - 라우팅을 하는 과정에서 반드시 내용을 추가해야 하는 건 아니다.
-- 네비게이션 바가 필요한 경우에는 App.view 파일을 이용할 수 있다. 
+- 네비게이션 바가 필요한 경우에는 App.view 파일을 이용할 수 있다.

@@ -14,3 +14,6 @@ npm install vue-router
 npm uninstall eslint eslint-plugin-vue
 npm install eslint@^8.0.0 eslint-plugin-vue@^9.0.0 --save-dev
 ```
+
+## 4. GitHub push 할 때 나는 오류는 참아 주세요..
+- 해결하려면 npm 에 대한 이해가 깊어야 할 것 같아요
