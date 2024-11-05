@@ -4,7 +4,7 @@
     <nav class="nav-bar">
       <ul>
         <li><a href="/">Home</a></li>
-        <li><a href="/create">Create Quiz</a></li>
+        <li><a href="/quizForm">Create Quiz</a></li>
         <li><a href="/about">About</a></li>
       </ul>
     </nav>

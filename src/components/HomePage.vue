@@ -2,10 +2,6 @@
   <div class="home-page">
     <AppHeader />
     <div class="content">
-      <button @click="$router.push('/quizForm')" class="create-quiz-button">
-        퀴즈 생성
-      </button>
-
       <!-- 퀴즈 목록 표시 -->
       <div class="quiz-board">
         <h2>퀴즈 게시판</h2>
@@ -48,15 +44,17 @@ export default {
     };
   },
   computed: {
-    totalPages() {
-      return Math.ceil(this.quizList.length / this.itemsPerPage);
-    },
-    paginatedQuizList() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.quizList.slice(start, end);
-    },
+  totalPages() {
+    return Math.ceil(this.quizList.length / this.itemsPerPage);
   },
+  paginatedQuizList() {
+    const reversedQuizList = [...this.quizList].reverse();
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return reversedQuizList.slice(start, end);
+  },
+},
+
   methods: {
     nextPage() {
       if (this.currentPage < this.totalPages) {
@@ -70,30 +68,41 @@ export default {
     },
   },
   async mounted() {
-    try {
-      const token = localStorage.getItem("jwtToken");
-      if (!token) {
-        throw new Error("로그인이 필요합니다.");
-      }
+  try {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      throw new Error("로그인이 필요합니다.");
+    }
 
-      // API 요청에 토큰 포함
-      const response = await axios.get("http://localhost:5678/api/v1/quizs", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log(response);
-      // API로부터 받은 데이터를 quizList에 할당합니다.
-      this.quizList = response.data.map((quiz) => ({
+    // API 요청에 토큰 포함
+    const response = await axios.get("http://localhost:5678/api/v1/quizs", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // 정렬 전 데이터 확인
+    console.log("Original data:", response.data);
+
+    // API로부터 받은 데이터를 quizList에 할당하면서 quizId를 기준으로 역순 정렬
+    this.quizList = response.data
+      .map((quiz) => ({
+        quizId: quiz.id,
         quizCategory: quiz.category,
         quizTitle: quiz.quiz,
         quizLevel: quiz.level,
-      }));
-    } catch (error) {
-      console.error("Failed to fetch quizzes:", error);
-      alert("퀴즈 목록을 불러오는 데 실패했습니다.");
-    }
-  },
+      }))
+      .sort((a, b) => b.quizId - a.quizId); // quizId를 기준으로 역순 정렬
+
+    // 정렬 후 데이터 확인
+    console.log("Sorted quizList by quizId (desc):", this.quizList);
+  } catch (error) {
+    console.error("Failed to fetch quizzes:", error);
+    alert("퀴즈 목록을 불러오는 데 실패했습니다.");
+  }
+}
+
+
 };
 </script>
 
@@ -106,7 +115,8 @@ export default {
 
 .content {
   flex: 1;
-  padding: 40px 0 40px;
+  padding: 80px 0 100px;
+  overflow-y: auto; /* 스크롤 가능하게 설정 */
 }
 
 .quiz-board {

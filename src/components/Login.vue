@@ -25,11 +25,6 @@
             <button type="submit">로그인</button>
           </div>
           <div class="login-help">
-            <div class="login-check">
-              <label>
-                <input type="checkbox" /> 로그인 상태 유지
-              </label>
-            </div>
             <div class="right-links">
               <a href="#">비밀번호 찾기</a>
               <span class="divider">|</span>
@@ -48,15 +43,10 @@
 <script>
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import AppHeader from "./Header.vue";
-import AppFooter from "./Footer.vue";
 
 export default {
   name: "LoginForm",
-  components: {
-    AppHeader,
-    AppFooter
-  },
+  
   data() {
     return {
       loginData: {
@@ -106,144 +96,135 @@ export default {
   </script>
   
   <style scoped>
-  body {
-    overflow: hidden;
-    margin: 0;
-  }
-  
-  .container {
-    min-height: 100vh;
-    background-color: #f5f6f7;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 120px;
-    padding-bottom: 80px;
-  }
-  
+
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* 스크롤 제거 */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  width: 100vw; /* 화면 너비 전체 */
+  height: 100vh; /* 화면 높이 전체 */
+  background-color: #f5f6f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-content {
+  width: 450px; /* 가로 크기 고정 */
+  height: 450px; /* 세로 크기 고정 */
+  background-color: white;
+  padding: 40px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.logo-area {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.input-row {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.input-row input {
+  width: 100%;
+  height: 48px;
+  padding: 0 15px;
+  border: 1px solid #dadada;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.input-row input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.865);
+}
+
+.login-button-area {
+  margin-top: 20px;
+}
+
+.login-button-area button {
+  width: 100%;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0.865);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button-area button:hover {
+  background-color: #020906b3;
+}
+
+.login-help {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.right-links {
+  display: flex;
+  align-items: center;
+
+}
+
+.right-links a {
+  color: #888;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.right-links a:hover {
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.865);
+}
+
+.divider {
+  margin: 0 10px;
+  color: #dadada;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
   .login-form {
-    width: 100%;
-    max-width: 460px;
-    margin: 0 auto;
     padding: 20px;
   }
-  
+
   .login-content {
-    background-color: white;
-    padding: 40px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 20px;
   }
-  
-  .logo-area {
-    text-align: center;
-    margin-bottom: 30px;
-  }
-  
-  .logo-area h1 {
-    color: rgba(0, 0, 0, 0.865);
-    font-size: 32px;
-    font-weight: bold;
-  }
-  
-  .input-row {
-    position: relative;
-    margin-bottom: 10px;
-  }
-  
-  .input-row input {
-    width: 100%;
-    height: 48px;
-    padding: 0 15px;
-    border: 1px solid #dadada;
-    border-radius: 6px;
-    font-size: 15px;
-    box-sizing: border-box;
-  }
-  
-  .input-row input:focus {
-    outline: none;
-    border-color: rgba(0, 0, 0, 0.865);
-  }
-  
-  .login-button-area {
-    margin-top: 20px;
-  }
-  
-  .login-button-area button {
-    width: 100%;
-    height: 50px;
-    background-color: rgba(0, 0, 0, 0.865);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .login-button-area button:hover {
-    background-color: #020906b3;
-  }
-  
+
   .login-help {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
+    flex-direction: column;
+    gap: 10px;
   }
-  
-  .login-check {
-    color: #777;
-  }
-  
-  .login-check input[type="checkbox"] {
-    margin-right: 5px;
-  }
-  
+
   .right-links {
-    display: flex;
-    align-items: center;
+    width: 100%;
+    justify-content: center;
   }
-  
-  .right-links a {
-    color: #888;
-    text-decoration: none;
-    font-size: 13px;
-  }
-  
-  .right-links a:hover {
-    text-decoration: underline;
-    color: rgba(0, 0, 0, 0.865);
-  }
-  
-  .divider {
-    margin: 0 10px;
-    color: #dadada;
-  }
-  
-  /* 반응형 디자인 */
-  @media (max-width: 768px) {
-    .login-form {
-      padding: 20px;
-    }
-    
-    .login-content {
-      padding: 20px;
-    }
+}
 
-    .login-help {
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .right-links {
-      width: 100%;
-      justify-content: center;
-    }
-  }
   </style>
   
