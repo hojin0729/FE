@@ -6,38 +6,49 @@
       <form @submit.prevent="submitForm">
         <div class="form-group">
           <label for="category">카테고리:</label>
-          <input
-            type="text"
-            id="category"
-            v-model="quiz.category"
-            required
-          />
+          <select id="category" v-model="quiz.quizCategory" required>
+            <option disabled value="">카테고리를 선택하세요</option>
+            <option value="용돈관리">용돈관리</option>
+            <option value="화폐">화폐</option>
+            <option value="신용과 위험관리">신용과 위험관리</option>
+            <option value="개인정보보호와 금융사기 예방">개인정보보호와 금융사기 예방</option>
+            <option value="금융회사">금융회사</option>
+            <option value="화폐와 환율">화폐와 환율</option>
+            <option value="현명한 소비">현명한 소비</option>
+            <option value="신용과 부채관리">신용과 부채관리</option>
+            <option value="저축">저축</option>
+            <option value="위험관리와 보험">위험관리와 보험</option>
+            <option value="금융시사">금융시사</option>
+            <option value="금융권 진로탐색">금융권 진로탐색</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="quiz">퀴즈 제목:</label>
+          <input type="text" id="quiz" v-model="quiz.quizTitle" required />
         </div>
         <div class="form-group">
           <label for="type">타입:</label>
-          <input
-            type="text"
-            id="type"
-            v-model="quiz.type"
-            required
-          />
+          <input type="text" id="type" v-model="quiz.quizType" value="O/X" readonly />
+        </div>
+        <div class="form-group">
+          <label for="level">난이도:</label>
+          <select id="level" v-model="quiz.quizLevel" required>
+            <option value="easy">Easy</option>
+            <option value="normal">Normal</option>
+            <option value="hard">Hard</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="answer">정답:</label>
-          <input
-            type="text"
-            id="answer"
-            v-model="quiz.answer"
-            required
-          />
+          <select id="answer" v-model="quiz.quizAnswer" required>
+            <option disabled value="">정답을 선택하세요</option>
+            <option value="O">O</option>
+            <option value="X">X</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="description">해설:</label>
-          <textarea
-            id="description"
-            v-model="quiz.description"
-            required
-          ></textarea>
+          <textarea id="description" v-model="quiz.quizDescription" required></textarea>
         </div>
         <div class="button-container">
           <button type="submit">퀴즈 생성</button>
@@ -51,6 +62,7 @@
 <script>
 import AppHeader from "./Header.vue";
 import AppFooter from "./Footer.vue";
+import axios from "axios";
 
 export default {
   components: {
@@ -60,16 +72,42 @@ export default {
   data() {
     return {
       quiz: {
-        category: "",
-        type: "",
-        answer: "",
-        description: "",
+        memberId: localStorage.getItem("memberId"), 
+        quizCategory: "",
+        quizTitle: "",
+        quizType: "O / X",
+        quizAnswer: "",
+        quizDescription: "",
+        quizLevel: "normal" // 기본값 설정
       },
     };
   },
   methods: {
-    submitForm() {
-      console.log("Quiz Data Submitted:", this.quiz);
+    async submitForm() {
+      try {
+        const token = localStorage.getItem("jwtToken"); // JWT 토큰 가져오기
+        if (!token) {
+          alert("로그인이 필요합니다.");
+          this.$router.push("/login"); // 로그인 페이지로 리디렉션
+          return;
+        }
+
+        // Axios 요청에 Authorization 헤더 추가
+        const response = await axios.post("http://localhost:5678/api/v1/quizs", this.quiz, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        });
+
+        console.log("Quiz created successfully:", response.data);
+
+        // 퀴즈 생성 후 메인 페이지로 리디렉션
+        this.$router.push("/");
+      } catch (error) {
+        console.error("Failed to create quiz:", error);
+        alert("퀴즈 생성에 실패했습니다. 다시 시도해 주세요.");
+      }
     },
   },
 };
@@ -77,7 +115,7 @@ export default {
 
 <style scoped>
 body {
-  overflow: hidden; /* 수평 및 수직 스크롤 숨기기 */
+  overflow: hidden;
   margin: 0;
 }
 
@@ -89,27 +127,27 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 수직으로 중앙 정렬 */
-  align-items: center; /* 수평으로 중앙 정렬 */
+  justify-content: center;
+  align-items: center;
   box-sizing: border-box;
-  padding-top: 80px; /* 헤더 높이만큼 패딩 */
-  padding-bottom: 4rem; /* 푸터 높이만큼 패딩 */
+  padding-top: 80px;
+  padding-bottom: 4rem;
 }
 
 .quiz-form h2 {
-  margin-left: 100px; /* 위아래로 1.5rem의 마진 추가 */
+  margin-left: 100px;
 }
 
 .quiz-form {
-  width: 100%; /* 부모 요소의 너비를 채움 */
-  max-width: 500px; /* 최대 너비를 500px로 설정 */
-  height: 70vh; /* 높이를 70vh로 설정하여 더 늘림 */
+  width: 100%;
+  max-width: 500px;
+  height: 70vh;
   margin: 0 auto;
   padding: 1rem;
-  overflow-y: auto; /* 내부에서 스크롤 가능하도록 설정 */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* 폼 요소들을 왼쪽 정렬 */
+  justify-content: flex-start;
 }
 
 .form-group {
@@ -121,24 +159,25 @@ body {
 .button-container {
   display: flex;
   margin-left: 100px;
-  justify-content: center; /* 버튼을 오른쪽으로 정렬 */
+  justify-content: center;
 }
 
 label {
-  width: 100px; /* 라벨의 고정된 너비 설정 */
+  width: 100px;
   margin-right: 1rem;
-  text-align: left; /* 라벨의 텍스트 왼쪽 정렬 */
+  text-align: left;
 }
 
 input,
+select,
 textarea {
   flex: 1;
   padding: 0.5rem;
 }
 
 textarea {
-  min-height: 150px; /* 텍스트 영역의 기본 높이 설정 */
-  resize: vertical; /* 사용자가 수직 크기 조정 가능 */
+  min-height: 150px;
+  resize: vertical;
 }
 
 button {

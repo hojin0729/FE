@@ -2,7 +2,7 @@
 <template>
   <div id="app">
     <nav>
-      <router-link to="/">Hello</router-link>
+      
     </nav>
     <router-view></router-view>
   </div>
