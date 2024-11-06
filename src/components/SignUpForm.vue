@@ -8,7 +8,7 @@
             <label for="email">이메일:</label>
             <input type="email" id="email" v-model="member.memberEmail" required />
           </div>
-          
+  
           <div class="form-group">
             <label for="password">비밀번호:</label>
             <input type="password" id="password" v-model="member.memberPassword" required />
@@ -35,13 +35,9 @@
           </div>
   
           <div class="form-group">
-            <label for="role">역할:</label>
-            <select id="role" v-model="member.memberRole" required>
-              <option disabled value="">역할을 선택하세요</option>
-              <option value="USER">사용자</option>
-              <option value="ADMIN">관리자</option>
-            </select>
-          </div>
+          <label for="role">역할:</label>
+          <input type="text" id="role" :value="roleDisplay" readonly class="readonly-input" />
+        </div>
   
           <div class="form-group">
             <label for="grade">학년:</label>
@@ -80,16 +76,22 @@
           memberSchool: "",
           memberBirthDay: "",
           memberNickname: "",
-          memberRole: "",
+          memberRole: "TEACHER", // 역할을 'TEACHER'로 고정
           memberGrade: null,
           memberClass: null,
         },
       };
     },
+    computed: {
+    roleDisplay() {
+      return this.member.memberRole === "TEACHER" ? "선생님" : this.member.memberRole;
+    }
+  },
     methods: {
       async submitForm() {
         try {
-          await axios.post("http://localhost:5678/api/v1/members/signup", this.member);
+            const beUrl = process.env.VUE_APP_BE_API_URL;
+          await axios.post( beUrl + "/api/v1/members/register", this.member);
           alert("회원가입이 완료되었습니다!");
           this.$router.push("/login"); // 로그인 페이지로 이동
         } catch (error) {
@@ -110,7 +112,7 @@
   
   .signup-form-container {
     width: 500px;
-    margin: 2rem auto;
+    margin: 0 auto;
     padding: 1rem;
     flex: 1;
     display: flex;
@@ -120,7 +122,7 @@
   
   h2 {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1rem;
   }
   
   .form-group {
@@ -155,5 +157,6 @@
   button:hover {
     background-color: #555;
   }
+  
   </style>
   
