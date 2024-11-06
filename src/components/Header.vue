@@ -3,19 +3,67 @@
     <img src="@/assets/image.png" alt="Header Image" class="header-image" />
     <nav class="nav-bar">
       <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/quizForm">Create Quiz</a></li>
-        <li><a href="/about">About</a></li>
+        <li>
+          <a v-if="!isLoggedIn" href="/login" @click.prevent="navigateToLogin">로그인</a>
+          <a v-else href="#" @click.prevent="logout">로그아웃</a>
+        </li>
+        <li><a href="/quizForm">퀴즈 만들기</a></li>
       </ul>
     </nav>
   </header>
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
 export default {
   name: "AppHeader",
+  setup() {
+    const isLoggedIn = ref(false);
+    const router = useRouter();
+
+    // 페이지 로드 시 JWT 토큰이 존재하는지 확인하여 로그인 상태 설정
+    onMounted(() => {
+      isLoggedIn.value = !!localStorage.getItem('jwtToken');
+    });
+
+    function navigateToLogin() {
+      router.push('/login'); // 로그인 페이지로 이동
+    }
+
+    function login() {
+      // 여기에 실제 로그인 로직 추가 (예: 서버에 로그인 요청 후 JWT 토큰 수신)
+      const jwtToken = "exampleToken";
+      localStorage.setItem('jwtToken', jwtToken); // JWT 토큰을 로컬스토리지에 저장
+      isLoggedIn.value = true;
+
+      
+    }
+
+    function logout() {
+  // 로그아웃 시 모든 관련 데이터 삭제
+  localStorage.removeItem('jwtToken');
+  localStorage.removeItem('memberId');
+  localStorage.removeItem('memberNickname');
+  isLoggedIn.value = false;
+  
+  // 홈 페이지로 이동
+  router.push('/login');
+}
+
+
+    return {
+      isLoggedIn,
+      login,
+      logout,
+      navigateToLogin,
+    };
+  },
 };
 </script>
+
+
 
 <style scoped>
 .app-header {

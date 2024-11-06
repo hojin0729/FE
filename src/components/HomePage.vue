@@ -44,17 +44,16 @@ export default {
     };
   },
   computed: {
-  totalPages() {
-    return Math.ceil(this.quizList.length / this.itemsPerPage);
+    totalPages() {
+      return Math.ceil(this.quizList.length / this.itemsPerPage);
+    },
+    paginatedQuizList() {
+      const reversedQuizList = [...this.quizList].reverse();
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return reversedQuizList.slice(start, end);
+    },
   },
-  paginatedQuizList() {
-    const reversedQuizList = [...this.quizList].reverse();
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return reversedQuizList.slice(start, end);
-  },
-},
-
   methods: {
     nextPage() {
       if (this.currentPage < this.totalPages) {
@@ -66,43 +65,67 @@ export default {
         this.currentPage--;
       }
     },
+    async fetchMemberNickname() {
+      const memberId = localStorage.getItem("memberId");
+      const token = localStorage.getItem("jwtToken");
+
+      if (!memberId || !token) return;
+
+      const storedNickname = localStorage.getItem("memberNickname");
+      if (storedNickname) return;
+
+      try {
+        const response = await axios.get(`http://localhost:5678/api/v1/members/${memberId}/nickname`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const memberNickname = response.data;
+        localStorage.setItem("memberNickname", memberNickname);
+        alert(`${memberNickname}님 어서오세요!`);
+      } catch (error) {
+        console.error("Failed to fetch member nickname:", error);
+        alert("회원 정보를 불러오는 데 실패했습니다.");
+      }
+    },
+    async fetchQuizList() {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) return;
+
+      try {
+        const response = await axios.get("http://localhost:5678/api/v1/quizs", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        this.quizList = response.data
+          .map((quiz) => ({
+            quizId: quiz.id,
+            quizCategory: quiz.category,
+            quizTitle: quiz.quiz,
+            quizLevel: quiz.level,
+          }))
+          .sort((a, b) => b.quizId - a.quizId);
+      } catch (error) {
+        console.error("Failed to fetch quizzes:", error);
+        alert("퀴즈 목록을 불러오는 데 실패했습니다.");
+      }
+    },
   },
   async mounted() {
-  try {
     const token = localStorage.getItem("jwtToken");
+
     if (!token) {
-      throw new Error("로그인이 필요합니다.");
+      console.error("로그인이 필요합니다.");
+      this.$router.push("/login");
+      return;
     }
 
-    // API 요청에 토큰 포함
-    const response = await axios.get("http://localhost:5678/api/v1/quizs", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    // 정렬 전 데이터 확인
-    console.log("Original data:", response.data);
-
-    // API로부터 받은 데이터를 quizList에 할당하면서 quizId를 기준으로 역순 정렬
-    this.quizList = response.data
-      .map((quiz) => ({
-        quizId: quiz.id,
-        quizCategory: quiz.category,
-        quizTitle: quiz.quiz,
-        quizLevel: quiz.level,
-      }))
-      .sort((a, b) => b.quizId - a.quizId); // quizId를 기준으로 역순 정렬
-
-    // 정렬 후 데이터 확인
-    console.log("Sorted quizList by quizId (desc):", this.quizList);
-  } catch (error) {
-    console.error("Failed to fetch quizzes:", error);
-    alert("퀴즈 목록을 불러오는 데 실패했습니다.");
-  }
-}
-
-
+    await this.fetchMemberNickname();
+    await this.fetchQuizList();
+  },
 };
 </script>
 

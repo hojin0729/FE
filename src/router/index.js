@@ -5,6 +5,7 @@ import HomePage from '../components/HomePage.vue';
 import QuizForm from '@/components/QuizForm.vue';
 import QuizBoard from '@/components/QuizBoard.vue';
 import Login from '@/components/Login.vue';
+import SignUpForm from '@/components/SignUpForm.vue';
 
 
 const routes = [
@@ -27,6 +28,11 @@ const routes = [
     path: '/login',
     name: "Login",
     component: Login
+  },
+  {
+    path: '/signup', 
+    name: "SignUp",
+    component: SignUpForm
   }
 ];
 

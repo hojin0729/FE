@@ -84,31 +84,29 @@ export default {
   },
   methods: {
     async submitForm() {
-      try {
-        const token = localStorage.getItem("jwtToken"); // JWT 토큰 가져오기
-        if (!token) {
-          alert("로그인이 필요합니다.");
-          this.$router.push("/login"); // 로그인 페이지로 리디렉션
-          return;
-        }
+  try {
+    const token = localStorage.getItem("jwtToken"); // JWT 토큰 가져오기
+    if (!token) {
+      alert("로그인이 필요합니다."); // 로그인 체크는 유지
+      this.$router.push("/login");
+      return;
+    }
 
-        // Axios 요청에 Authorization 헤더 추가
-        const response = await axios.post("http://localhost:5678/api/v1/quizs", this.quiz, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          withCredentials: true
-        });
+    await axios.post("http://localhost:5678/api/v1/quizs", this.quiz, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      withCredentials: true
+    });
 
-        console.log("Quiz created successfully:", response.data);
+    // 퀴즈 생성 후 메인 페이지로 리디렉션
+    this.$router.push("/");
+  } catch (error) {
+    console.error("Failed to create quiz:", error);
+    alert("퀴즈 생성에 실패했습니다. 다시 시도해 주세요.");
+  }
+}
 
-        // 퀴즈 생성 후 메인 페이지로 리디렉션
-        this.$router.push("/");
-      } catch (error) {
-        console.error("Failed to create quiz:", error);
-        alert("퀴즈 생성에 실패했습니다. 다시 시도해 주세요.");
-      }
-    },
   },
 };
 </script>

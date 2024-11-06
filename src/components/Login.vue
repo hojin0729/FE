@@ -30,7 +30,7 @@
               <span class="divider">|</span>
               <a href="#">아이디 찾기</a>
               <span class="divider">|</span>
-              <a href="#">회원가입</a>
+              <router-link to="/signup">회원가입</router-link>
             </div>
           </div>
         </form>
