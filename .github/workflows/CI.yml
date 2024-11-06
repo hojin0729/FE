@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev
-      
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,20 +15,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Set up Node.js
+      # 2. Cache node_modules
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 3. Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Node.js 버전을 지정하세요
+          node-version: '18'
 
-      # 3. Install dependencies
+      # 4. Install dependencies (캐시가 없을 때만 실행)
       - name: Install dependencies
         run: npm install
 
-      # 4. Run lint
+      # 5. Run lint
       - name: Run ESLint
         run: npm run lint
 
-      # 5. Build the project
+      # 6. Build the project
       - name: Build project
         run: npm run build
