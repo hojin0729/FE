@@ -18,7 +18,7 @@
           <label for="content">내용:</label>
           <textarea 
             id="content" 
-            v-model="article.articleContent" 
+            v-model="article.articleContents" 
             required 
             placeholder="내용을 입력하세요"
           ></textarea>
@@ -48,7 +48,7 @@ export default {
       article: {
         memberId: localStorage.getItem("memberId"),
         articleTitle: "",
-        articleContent: "",
+        articleContents: "",
       },
     };
   },
@@ -71,7 +71,7 @@ export default {
         });
 
         // 글 작성 후 게시판 페이지로 리디렉션
-        this.$router.push("/board");
+        this.$router.push("/generalForum");
       } catch (error) {
         console.error("Failed to create article:", error);
         alert("글 작성에 실패했습니다. 다시 시도해 주세요.");
