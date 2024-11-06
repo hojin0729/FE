@@ -94,7 +94,8 @@ export default {
       if (!token) return;
 
       try {
-        const response = await axios.get("http://localhost:5678/api/v1/quizs", {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const response = await axios.get(beUrl + "/api/v1/quizs", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
