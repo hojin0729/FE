@@ -4,46 +4,58 @@
     <div class="content">
       <div class="quiz-board">
         <h2>퀴즈 게시판</h2>
-        <table class="quiz-table">
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>제목</th>
-              <th>작성자</th>
-              <th>작성일</th>
-              <th>조회수</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(quiz, index) in paginatedQuizList" :key="index">
-              <td>{{ quiz.quizId }}</td>
-              <td class="title">
-                {{ quiz.quizTitle }}
-                <span class="category-badge">{{ quiz.quizCategory }}</span>
-                <span class="level-badge">{{ quiz.quizLevel }}</span>
-              </td>
-              <td>{{ quiz.nickname }}</td>
-              <td>{{ formatDate(quiz.createdAt) }}</td>
-              <td>{{ quiz.views || 0 }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="total-count">전체 {{ quizList.length }}건</div>
+        <div class="table-container">
+          <table class="quiz-table">
+            <thead>
+              <tr>
+                <th width="10%">번호</th>
+                <th width="50%">제목</th>
+                <th width="20%">작성자</th>
+                <th width="20%">작성일</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="i in itemsPerPage" :key="i">
+                <tr v-if="paginatedQuizList[i-1]">
+                  <td class="id-cell">{{ paginatedQuizList[i-1].quizId }}</td>
+                  <td class="title-cell">
+                    <div class="title-wrapper">
+                      <span class="title-text">{{ paginatedQuizList[i-1].quizTitle }}</span>
+                      <span class="badges">
+                        <span class="category-badge">{{ paginatedQuizList[i-1].quizCategory }}</span>
+                        <span class="level-badge">{{ paginatedQuizList[i-1].quizLevel }}</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="author-cell">{{ paginatedQuizList[i-1].nickname }}</td>
+                  <td class="date-cell">{{ formatDate(paginatedQuizList[i-1].createdAt) }}</td>
+                </tr>
+                <tr v-else class="empty-row">
+                  <td colspan="4">&nbsp;</td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
         
-        <div class="pagination">
-          <button class="page-btn" @click="goToFirstPage">≪</button>
-          <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">＜</button>
-          <div class="page-numbers">
-            <button 
-              v-for="pageNum in displayedPages" 
-              :key="pageNum"
-              :class="['page-num', { active: currentPage === pageNum }]"
-              @click="goToPage(pageNum)"
-            >
-              {{ pageNum }}
-            </button>
+        <div class="pagination-container">
+          <div class="pagination">
+            <button class="page-btn" @click="goToFirstPage">≪</button>
+            <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">＜</button>
+            <div class="page-numbers">
+              <button 
+                v-for="pageNum in displayedPages" 
+                :key="pageNum"
+                :class="['page-num', { active: currentPage === pageNum }]"
+                @click="goToPage(pageNum)"
+              >
+                {{ pageNum }}
+              </button>
+            </div>
+            <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">＞</button>
+            <button class="page-btn" @click="goToLastPage">≫</button>
           </div>
-          <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">＞</button>
-          <button class="page-btn" @click="goToLastPage">≫</button>
         </div>
       </div>
     </div>
@@ -189,16 +201,27 @@ export default {
 
 .content {
   flex: 1;
-  padding: 80px 0 100px;
-  overflow-y: auto; /* 스크롤 가능하게 설정 */
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 200px);
 }
 
 .quiz-board {
-  margin-top: 20px;
+  margin-top: 50px;
 }
 
 .create-quiz-button {
   margin-bottom: 20px;
+}
+
+.pagination-container {
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 1px solid #eee;
 }
 
 .pagination {
@@ -206,31 +229,29 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 5px;
-  margin-top: 20px;
 }
 
-.page-btn {
-  padding: 8px 12px;
-  border: 1px solid #dee2e6;
-  background-color: white;
-  cursor: pointer;
-}
-
-.page-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.page-numbers {
-  display: flex;
-  gap: 5px;
-}
-
+.page-btn,
 .page-num {
-  padding: 8px 12px;
-  border: 1px solid #dee2e6;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid #ddd;
   background-color: white;
+  color: #333;
+  font-size: 14px;
+  line-height: 30px;
+  text-align: center;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover,
+.page-num:hover {
+  background-color: #f8f9fa;
+  border-color: #999;
 }
 
 .page-num.active {
@@ -243,19 +264,27 @@ export default {
   width: 100%;
   border-collapse: collapse;
   border-top: 2px solid #333;
+  table-layout: fixed;
 }
 
 .quiz-table th,
 .quiz-table td {
-  padding: 12px;
-  text-align: center;
+  padding: 15px;
   border-bottom: 1px solid #ddd;
+  height: 57px;
+  box-sizing: border-box;
+}
+
+.empty-row td {
+  border-bottom: 1px solid #ddd;
+  height: 57px;
 }
 
 .quiz-table th {
   background-color: #f8f9fa;
   font-weight: bold;
   color: #333;
+  text-align: center;
 }
 
 .quiz-table td.title {
@@ -271,9 +300,12 @@ export default {
 .level-badge {
   display: inline-block;
   padding: 2px 8px;
-  margin-left: 8px;
   border-radius: 12px;
   font-size: 12px;
+  white-space: nowrap;
+}
+
+.category-badge {
   background-color: #e9ecef;
 }
 
@@ -283,13 +315,66 @@ export default {
 
 .quiz-board {
   max-width: 1200px;
-  margin: 0 auto;
+  margin-top: 100px;
   padding: 0 20px;
+  height: 700px;
+  overflow-y: hidden;
 }
 
 .quiz-board h2 {
   margin-bottom: 20px;
   font-size: 24px;
   color: #333;
+}
+
+/* 각 셀 정렬 스타일 */
+.id-cell {
+  text-align: center;
+}
+
+.title-cell {
+  text-align: left;
+  padding-left: 20px;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.title-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 10px;
+}
+
+.badges {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.author-cell {
+  text-align: center;
+}
+
+.date-cell {
+  text-align: center;
+}
+
+.total-count {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.table-container {
+  height: 570px;
+  margin: 20px 0;
+  overflow: hidden;
 }
 </style>
