@@ -91,8 +91,8 @@ export default {
       this.$router.push("/login");
       return;
     }
-
-    await axios.post("http://localhost:5678/api/v1/quizs", this.quiz, {
+    const beUrl = process.env.VUE_APP_BE_API_URL;
+    await axios.post( beUrl +"/api/v1/quizs", this.quiz, {
       headers: {
         Authorization: `Bearer ${token}`
       },
