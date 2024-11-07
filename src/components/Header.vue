@@ -1,6 +1,6 @@
 <template>
   <header class="app-header">
-    <img src="@/assets/image.png" alt="Header Image" class="header-image" />
+    <img src="@/assets/image.png" alt="Header Image" class="header-image" @click="goToHome" />
     <nav class="nav-bar">
       <ul>
         <li>
@@ -27,6 +27,10 @@ export default {
     onMounted(() => {
       isLoggedIn.value = !!localStorage.getItem('jwtToken');
     });
+
+    function goToHome() {
+      router.push({ path: '/' });
+    }
 
     function navigateToLogin() {
       router.push('/login'); // 로그인 페이지로 이동
@@ -55,6 +59,7 @@ export default {
 
     return {
       isLoggedIn,
+      goToHome,
       login,
       logout,
       navigateToLogin,
