@@ -1,7 +1,7 @@
 // 라우팅하는 라우터 파일
 
 import { createRouter, createWebHistory } from 'vue-router'; // createRouter와 createWebHistory를 가져옵니다.
-import HomePage from '../components/HomePage.vue';
+// import HomePage from '../components/HomePage.vue';
 import QuizForm from '@/components/QuizForm.vue';
 import QuizBoard from '@/components/QuizBoard.vue';
 import Login from '@/components/Login.vue';
@@ -9,11 +9,11 @@ import SignUpForm from '@/components/SignUpForm.vue';
 import ArticleForm from '@/components/ArticleForm.vue';
 import GeneralForum from '@/components/GeneralForum.vue';
 const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: HomePage
-  },
+  // {
+  //   path: '/',
+  //   name: 'Home',
+  //   component: HomePage
+  // },
   {
     path: '/quizForm',
     name: "QuizForm",
