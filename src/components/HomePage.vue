@@ -3,8 +3,26 @@
     <AppHeader />
     <div class="content">
       <div class="quiz-board">
-        <h2>퀴즈 게시판</h2>
-        <div class="total-count">전체 {{ quizList.length }}건</div>
+        <div class="search-area">
+          <div class="total-count">전체 {{ filteredList.length }}건</div>
+          <div class="search-container">
+            <select v-model="searchType" class="search-select">
+              <option value="all">전체</option>
+              <option value="title">제목</option>
+              <option value="category">카테고리</option>
+              <option value="level">난이도</option>
+              <option value="author">작성자</option>
+            </select>
+            <input 
+              type="text" 
+              v-model="searchKeyword" 
+              class="search-input" 
+              placeholder="검색어를 입력하세요"
+              @keyup.enter="handleSearch"
+            >
+            <button class="search-button" @click="handleSearch">검색</button>
+          </div>
+        </div>
         <div class="table-container">
           <table class="quiz-table">
             <thead>
@@ -37,24 +55,27 @@
               </template>
             </tbody>
           </table>
-        </div>
-        
-        <div class="pagination-container">
-          <div class="pagination">
-            <button class="page-btn" @click="goToFirstPage">≪</button>
-            <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">＜</button>
-            <div class="page-numbers">
-              <button 
-                v-for="pageNum in displayedPages" 
-                :key="pageNum"
-                :class="['page-num', { active: currentPage === pageNum }]"
-                @click="goToPage(pageNum)"
-              >
-                {{ pageNum }}
-              </button>
+          <div class="pagination-container">
+            <div class="pagination">
+              <div class="pagination-wrapper">
+                <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
+                  &lt;
+                </button>
+                <div class="page-numbers">
+                  <button 
+                    v-for="pageNum in getDisplayedPages()" 
+                    :key="pageNum"
+                    :class="['page-num', { active: currentPage === pageNum }]"
+                    @click="goToPage(pageNum)"
+                  >
+                    {{ pageNum }}
+                  </button>
+                </div>
+                <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
+                  &gt;
+                </button>
+              </div>
             </div>
-            <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">＞</button>
-            <button class="page-btn" @click="goToLastPage">≫</button>
           </div>
         </div>
       </div>
@@ -79,17 +100,42 @@ export default {
       quizList: [],
       currentPage: 1,
       itemsPerPage: 10,
+      searchType: 'all',
+      searchKeyword: '',
     };
   },
   computed: {
-    totalPages() {
-      return Math.ceil(this.quizList.length / this.itemsPerPage);
+    filteredList() {
+      if (!this.searchKeyword) return this.quizList;
+      
+      return this.quizList.filter(quiz => {
+        const keyword = this.searchKeyword.toLowerCase();
+        switch (this.searchType) {
+          case 'title':
+            return quiz.quizTitle.toLowerCase().includes(keyword);
+          case 'category':
+            return quiz.quizCategory.toLowerCase().includes(keyword);
+          case 'level':
+            return quiz.quizLevel.toLowerCase().includes(keyword);
+          case 'author':
+            return quiz.nickname.toLowerCase().includes(keyword);
+          case 'all':
+            return quiz.quizTitle.toLowerCase().includes(keyword) ||
+                   quiz.quizCategory.toLowerCase().includes(keyword) ||
+                   quiz.quizLevel.toLowerCase().includes(keyword) ||
+                   quiz.nickname.toLowerCase().includes(keyword);
+          default:
+            return true;
+        }
+      });
     },
     paginatedQuizList() {
-      const reversedQuizList = [...this.quizList].reverse();
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return reversedQuizList.slice(start, end);
+      return this.filteredList.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredList.length / this.itemsPerPage);
     },
   },
   methods: {
@@ -153,7 +199,7 @@ export default {
           })
         );
 
-        this.quizList = quizzesWithNickname;
+        this.quizList = quizzesWithNickname.sort((a, b) => b.quizId - a.quizId); // ID 기준 내림차순 정렬
       } catch (error) {
         console.error("퀴즈 목록 조회 실패:", error);
         alert("퀴즈 목록을 불러오는 데 실패했습니다.");
@@ -177,6 +223,39 @@ export default {
         day: '2-digit'
       }).replace(/\. /g, '-').replace('.', '');
     },
+    getDisplayedPages() {
+      const totalPages = this.totalPages;
+      const current = this.currentPage;
+      
+      // 항상 5개의 페이지를 보여주되, 위치 고정
+      if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+      
+      if (current <= 3) {
+        return [1, 2, 3, 4, 5];
+      }
+      
+      if (current >= totalPages - 2) {
+        return [
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages
+        ];
+      }
+      
+      return [current - 2, current - 1, current, current + 1, current + 2];
+    },
+    handleSearch() {
+      this.currentPage = 1; // 검색 시 첫 페이지로 이동
+    },
+  },
+  watch: {
+    searchType() {
+      this.currentPage = 1; // 검색 타입 변경 시 첫 페이지로 이동
+    }
   },
   async mounted() {
     const token = localStorage.getItem("jwtToken");
@@ -196,7 +275,13 @@ export default {
 .home-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+.total-count{
+  text-align: right;
+  margin-top: 10px;
 }
 
 .content {
@@ -204,11 +289,17 @@ export default {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: calc(100vh - 200px);
+  width: 100%;
+  padding-top: 80px;
+  padding-bottom: 40px;
 }
 
 .quiz-board {
-  margin-top: 50px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높이를 뺀 값 */
 }
 
 .create-quiz-button {
@@ -216,48 +307,64 @@ export default {
 }
 
 .pagination-container {
-  position: sticky;
-  bottom: 0;
-  background-color: white;
-  padding: 20px 0;
-  margin-top: 20px;
-  border-top: 1px solid #eee;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 15px 0;
+  margin-top: auto; /* 테이블 아래 공간을 채우고 하단에 배치 */
 }
 
 .pagination {
   display: flex;
   justify-content: center;
+  width: 100%;
+}
+
+.pagination-wrapper {
+  display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.page-btn,
-.page-num {
-  min-width: 32px;
-  height: 32px;
-  padding: 0 6px;
+.page-numbers {
+  display: flex;
+  gap: 5px;
+  margin: 0 5px;
+  min-width: 170px;
+  justify-content: center;
+}
+
+.page-num,
+.nav-btn {
+  min-width: 30px;
+  height: 30px;
   border: 1px solid #ddd;
   background-color: white;
   color: #333;
   font-size: 14px;
-  line-height: 30px;
-  text-align: center;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.page-btn:hover,
-.page-num:hover {
-  background-color: #f8f9fa;
-  border-color: #999;
+  padding: 0;
+  margin: 0;
 }
 
 .page-num.active {
-  background-color: #007bff;
+  background-color: rgba(0, 0, 0, 0.865);
   color: white;
-  border-color: #007bff;
+  border-color: rgba(0, 0, 0, 0.865);
+}
+
+.nav-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.nav-btn:hover:not(:disabled),
+.page-num:hover:not(.active) {
+  background-color: #f8f9fa;
+  border-color: #999;
 }
 
 .quiz-table {
@@ -269,15 +376,15 @@ export default {
 
 .quiz-table th,
 .quiz-table td {
-  padding: 15px;
+  padding: 12px 15px;
   border-bottom: 1px solid #ddd;
-  height: 57px;
+  height: 52px;
   box-sizing: border-box;
 }
 
 .empty-row td {
   border-bottom: 1px solid #ddd;
-  height: 57px;
+  height: 52px; /* 빈 행의 높이를 일정하게 */
 }
 
 .quiz-table th {
@@ -313,21 +420,13 @@ export default {
   background-color: #dee2e6;
 }
 
-.quiz-board {
-  max-width: 1200px;
-  margin-top: 100px;
-  padding: 0 20px;
-  height: 700px;
-  overflow-y: hidden;
-}
-
 .quiz-board h2 {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   font-size: 24px;
   color: #333;
 }
 
-/* 각 셀 정렬 스타일 */
+/* 각 셀 정렬 스��일 */
 .id-cell {
   text-align: center;
 }
@@ -369,12 +468,107 @@ export default {
 .total-count {
   color: #666;
   font-size: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .table-container {
-  height: 570px;
   margin: 20px 0;
-  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.search-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 30px;
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  height: 40px;
+}
+
+.search-select {
+  width: 100px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.search-input {
+  width: 500px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.search-button {
+  width: 80px;
+  height: 40px;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.865);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-button:hover {
+  background-color: #020906b3;
+}
+
+.search-select:focus,
+.search-input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.865);
+}
+
+/* 반응형 처리 */
+@media (max-width: 768px) {
+  .search-area {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-container {
+    flex-direction: column;
+    height: auto;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .search-select,
+  .search-input,
+  .search-button {
+    width: 100%;
+  }
+
+  .total-count {
+    text-align: left;
+    width: 100%;
+  }
+}
+
+@media (max-height: 900px) {
+  .quiz-board {
+    min-height: calc(100vh - 180px);
+  }
 }
 </style>

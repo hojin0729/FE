@@ -16,9 +16,11 @@ export default {
   padding: 1rem;
   color: white;
   text-align: center;
+  width: 100%;
+  height: 40px;
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
+  z-index: 100;
 }
 </style>
