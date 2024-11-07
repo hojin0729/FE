@@ -15,12 +15,12 @@ const routes = [
   //   component: HomePage
   // },
   {
-    path: '/quizForm',
+    path: '/quizform',
     name: "QuizForm",
     component: QuizForm
   },
   {
-    path: '/quizBoard',
+    path: '/quizboard',
     name: "QuizBoard",
     component: QuizBoard
   },
@@ -35,12 +35,12 @@ const routes = [
     component: SignUpForm
   },
   {
-    path: '/articleForm',
+    path: '/articleform',
     name: "ArticleForm",
     component: ArticleForm
   },
   {
-    path: '/generalForum',
+    path: '/generalforum',
     name: "GeneralForum",
     component: GeneralForum
   }
