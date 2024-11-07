@@ -121,7 +121,7 @@ export default {
         // 각 퀴즈에 대해 `memberId`를 이용해 `memberNickname` 가져오기
         const quizzesWithNickname = await Promise.all(
           response.data.map(async (quiz) => {
-            const createdAt = quiz.date || new Date().toISOString();
+            const createdAt = quiz.createdAt || new Date().toISOString();
 
             // `memberId`가 있을 경우 닉네임 조회
             let nickname = '알 수 없음';
