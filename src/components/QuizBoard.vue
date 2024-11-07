@@ -58,24 +58,27 @@
           <div class="pagination-container">
             <div class="pagination">
               <div class="pagination-wrapper">
-                <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
-                  &lt;
-                </button>
-                <div class="page-numbers">
-                  <button 
-                    v-for="pageNum in getDisplayedPages()" 
-                    :key="pageNum"
-                    :class="['page-num', { active: currentPage === pageNum }]"
-                    @click="goToPage(pageNum)"
-                  >
-                    {{ pageNum }}
+                <div class="pagination-buttons">
+                  <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
+                    &lt;
+                  </button>
+                  <div class="page-numbers">
+                    <button 
+                      v-for="pageNum in getDisplayedPages()" 
+                      :key="pageNum"
+                      :class="['page-num', { active: currentPage === pageNum }]"
+                      @click="goToPage(pageNum)"
+                    >
+                      {{ pageNum }}
+                    </button>
+                  </div>
+                  <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
+                    &gt;
                   </button>
                 </div>
-                <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
-                  &gt;
-                </button>
               </div>
             </div>
+            <button class="create-quiz-button search-button" @click="createQuiz">퀴즈 생성</button>
           </div>
         </div>
       </div>
@@ -251,6 +254,9 @@ export default {
     handleSearch() {
       this.currentPage = 1; // 검색 시 첫 페이지로 이동
     },
+    createQuiz() {
+      this.$router.push('/quizform');  // router/index.js에 정의된 경로로 이동
+    }
   },
   watch: {
     searchType() {
@@ -302,28 +308,36 @@ export default {
   min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높이를 뺀 값 */
 }
 
-.create-quiz-button {
-  margin-bottom: 20px;
-}
 
 .pagination-container {
   position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   padding: 15px 0;
-  margin-top: auto; /* 테이블 아래 공간을 채우고 하단에 배치 */
+  margin-top: auto;
+  width: 100%;
 }
 
 .pagination {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .pagination-wrapper {
   display: flex;
   align-items: center;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
   gap: 5px;
+}
+
+.create-quiz-button {
+  margin-left: auto;
 }
 
 .page-numbers {
@@ -426,7 +440,7 @@ export default {
   color: #333;
 }
 
-/* 각 셀 정렬 스��일 */
+/* 각 셀 정렬 스일 */
 .id-cell {
   text-align: center;
 }

@@ -7,7 +7,6 @@
           <a v-if="!isLoggedIn" href="/login" @click.prevent="navigateToLogin">로그인</a>
           <a v-else href="#" @click.prevent="logout">로그아웃</a>
         </li>
-        <li><a href="/quizForm">퀴즈 만들기</a></li>
       </ul>
     </nav>
   </header>

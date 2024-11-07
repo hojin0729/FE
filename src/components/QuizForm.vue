@@ -100,7 +100,7 @@ export default {
     });
 
     // 퀴즈 생성 후 메인 페이지로 리디렉션
-    this.$router.push("/");
+    this.$router.push("/quizboard");
   } catch (error) {
     console.error("Failed to create quiz:", error);
     alert("퀴즈 생성에 실패했습니다. 다시 시도해 주세요.");
