@@ -7,7 +7,7 @@ import QuizBoard from '@/components/QuizBoard.vue';
 import Login from '@/components/Login.vue';
 import SignUpForm from '@/components/SignUpForm.vue';
 import ArticleForm from '@/components/ArticleForm.vue';
-import GeneralForum from '@/components/GeneralForum.vue';
+import Articles from '@/components/Articles.vue';
 const routes = [
   {
     path: '/',
@@ -40,9 +40,9 @@ const routes = [
     component: ArticleForm
   },
   {
-    path: '/generalforum',
-    name: "GeneralForum",
-    component: GeneralForum
+    path: '/articles',
+    name: "Articles",
+    component: Articles
   }
 ];
 

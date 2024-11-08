@@ -6,7 +6,7 @@
         <button class="menu-button" @click="$router.push('/quizboard')">
           <span class="button-text">퀴즈 게시판</span>
         </button>
-        <button class="menu-button" @click="$router.push('/generalforum')">
+        <button class="menu-button" @click="$router.push('/articles')">
           <span class="button-text">자유 게시판</span>
         </button>
       </div>

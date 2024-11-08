@@ -71,7 +71,7 @@ export default {
         });
 
         // 글 작성 후 게시판 페이지로 리디렉션
-        this.$router.push("/generalForum");
+        this.$router.push("/articles");
       } catch (error) {
         console.error("Failed to create article:", error);
         alert("글 작성에 실패했습니다. 다시 시도해 주세요.");
