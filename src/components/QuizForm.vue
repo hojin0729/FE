@@ -17,14 +17,19 @@
             <option value="현명한 소비">현명한 소비</option>
             <option value="신용과 부채관리">신용과 부채관리</option>
             <option value="저축">저축</option>
-            <option value="위험관리와 보험">위험관리와 보험</option>
+            <option value="위험관리와 보험">위험관리 보험</option>
             <option value="금융시사">금융시사</option>
             <option value="금융권 진로탐색">금융권 진로탐색</option>
           </select>
         </div>
         <div class="form-group">
           <label for="quiz">퀴즈 제목:</label>
-          <input type="text" id="quiz" v-model="quiz.quizTitle" required />
+          <input 
+            type="text" 
+            id="quiz" 
+            v-model="quiz.quizTitle" 
+            required 
+          />
         </div>
         <div class="form-group">
           <label for="type">타입:</label>
@@ -48,7 +53,15 @@
         </div>
         <div class="form-group">
           <label for="description">해설:</label>
-          <textarea id="description" v-model="quiz.quizDescription" required></textarea>
+          <div class="input-wrapper">
+            <textarea 
+              id="description" 
+              v-model="quiz.quizDescription" 
+              required
+              maxlength="500"
+            ></textarea>
+            <span class="char-count">{{ quiz.quizDescription.length }}/500자</span>
+          </div>
         </div>
         <div class="button-container">
           <button type="submit">퀴즈 생성</button>
@@ -176,6 +189,7 @@ textarea {
 textarea {
   min-height: 150px;
   resize: vertical;
+  padding-bottom: 25px;
 }
 
 button {
@@ -188,5 +202,26 @@ button {
 
 button:hover {
   background-color: #020906b3;
+}
+
+.input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.char-count {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  font-size: 12px;
+  color: #666;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 2px 5px;
+}
+
+input {
+  padding-right: 70px;
 }
 </style>

@@ -25,7 +25,7 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+
   color: #2c3e50;
   margin: 0; /* 상단 여백 제거 */
   padding: 0; /* 패딩 제거 */

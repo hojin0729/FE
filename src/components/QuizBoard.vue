@@ -37,7 +37,7 @@
               <template v-for="i in itemsPerPage" :key="i">
                 <tr v-if="paginatedQuizList[i-1]">
                   <td class="id-cell">{{ paginatedQuizList[i-1].quizId }}</td>
-                  <td class="title-cell">
+                  <td class="title-cell" @click="goToQuizDetail(paginatedQuizList[i-1].quizId)">
                     <div class="title-wrapper">
                       <span class="title-text">{{ paginatedQuizList[i-1].quizTitle }}</span>
                       <span class="badges">
@@ -256,6 +256,9 @@ export default {
     },
     createQuiz() {
       this.$router.push('/quizform');  // router/index.js에 정의된 경로로 이동
+    },
+    goToQuizDetail(quizId) {
+      this.$router.push(`/quiz/${quizId}`);
     }
   },
   watch: {
@@ -448,6 +451,13 @@ export default {
 .title-cell {
   text-align: left;
   padding-left: 20px;
+  cursor: pointer; /* 커서 모양을 포인터로 변경 */
+  transition: background-color 0.2s; /* 부드러운 전환 효과 */
+}
+
+
+.title-cell:active {
+  background-color: #e0e0e0; /* 클릭 시 배경색 변경 */
 }
 
 .title-wrapper {
@@ -463,6 +473,12 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 10px;
+  color: #2c3e50; /* 링크처럼 보이는 색상 */
+}
+
+.title-cell:hover .title-text {
+  color: #1a73e8; /* 호버 시 텍스트 색상 변경 */
+  text-decoration: underline; /* 호버 시 밑줄 추가 */
 }
 
 .badges {

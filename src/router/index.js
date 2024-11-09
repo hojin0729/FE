@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'; // createRouter와 
 import HomePage from '../components/HomePage.vue';
 import QuizForm from '@/components/QuizForm.vue';
 import QuizBoard from '@/components/QuizBoard.vue';
+import QuizDetailPage from '@/components/QuizDetailPage.vue';
 import Login from '@/components/Login.vue';
 import SignUpForm from '@/components/SignUpForm.vue';
 import ArticleForm from '@/components/ArticleForm.vue';
@@ -23,6 +24,11 @@ const routes = [
     path: '/quizboard',
     name: "QuizBoard",
     component: QuizBoard
+  },
+  {
+    path: '/quiz/:id',
+    name: "QuizDetail",
+    component: QuizDetailPage
   },
   {
     path: '/login',
