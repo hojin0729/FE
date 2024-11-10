@@ -8,6 +8,7 @@ import QuizDetailPage from '@/components/QuizDetailPage.vue';
 import Login from '@/components/Login.vue';
 import SignUpForm from '@/components/SignUpForm.vue';
 import ArticleForm from '@/components/ArticleForm.vue';
+import MyPage from '@/components/MyPage.vue';
 import Articles from '@/components/Articles.vue';
 const routes = [
   {
@@ -44,6 +45,11 @@ const routes = [
     path: '/articleform',
     name: "ArticleForm",
     component: ArticleForm
+  },
+  {
+    path: '/mypage',
+    name: "MyPage",
+    component: MyPage
   },
   {
     path: '/articles',

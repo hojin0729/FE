@@ -3,9 +3,16 @@
     <img src="@/assets/image.png" alt="Header Image" class="header-image" @click="goToHome" />
     <nav class="nav-bar">
       <ul>
-        <li>
-          <a v-if="!isLoggedIn" href="/login" @click.prevent="navigateToLogin">로그인</a>
-          <a v-else href="#" @click.prevent="logout">로그아웃</a>
+        <template v-if="isLoggedIn">
+          <li>
+            <a href="/mypage" @click.prevent="goToMyPage">마이페이지</a>
+          </li>
+          <li>
+            <a href="#" @click.prevent="logout">로그아웃</a>
+          </li>
+        </template>
+        <li v-else>
+          <a href="/login" @click.prevent="navigateToLogin">로그인</a>
         </li>
       </ul>
     </nav>
@@ -22,13 +29,16 @@ export default {
     const isLoggedIn = ref(false);
     const router = useRouter();
 
-    // 페이지 로드 시 JWT 토큰이 존재하는지 확인하여 로그인 상태 설정
     onMounted(() => {
       isLoggedIn.value = !!localStorage.getItem('jwtToken');
     });
 
     function goToHome() {
       router.push({ path: '/' });
+    }
+
+    function goToMyPage() {
+      router.push('/mypage');
     }
 
     function navigateToLogin() {
@@ -59,6 +69,7 @@ export default {
     return {
       isLoggedIn,
       goToHome,
+      goToMyPage,
       login,
       logout,
       navigateToLogin,
@@ -90,14 +101,22 @@ export default {
 nav ul {
   list-style: none;
   display: flex;
-  gap: 1rem;
+  gap: 2rem; /* 버튼 사이 간격 늘림 */
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 
 nav a {
   color: black;
   text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+nav a:hover {
+  background-color: #f5f5f5;
 }
 
 .header-image {
