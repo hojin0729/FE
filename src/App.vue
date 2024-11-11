@@ -29,7 +29,6 @@ export default {
   color: #2c3e50;
   margin: 0; /* 상단 여백 제거 */
   padding: 0; /* 패딩 제거 */
-  overflow: hidden; /* 스크롤 제거 */
   box-sizing: border-box; /* 패딩과 보더가 너비와 높이에 포함되도록 설정 */
 }
 

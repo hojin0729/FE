@@ -46,7 +46,7 @@
                       </span>
                     </div>
                   </td>
-                  <td class="author-cell">{{ paginatedQuizList[i-1].nickname }}</td>
+                  <td class="author-cell">{{ paginatedQuizList[i-1].memberNickname }}</td>
                   <td class="date-cell">{{ formatDate(paginatedQuizList[i-1].createdAt) }}</td>
                 </tr>
                 <tr v-else class="empty-row">
@@ -105,6 +105,8 @@ export default {
       itemsPerPage: 10,
       searchType: 'all',
       searchKeyword: '',
+      memberNickname: localStorage.getItem("memberNickname") || "",
+      memberId: localStorage.getItem("memberId") || "",
     };
   },
   computed: {
@@ -121,12 +123,12 @@ export default {
           case 'level':
             return quiz.quizLevel.toLowerCase().includes(keyword);
           case 'author':
-            return quiz.nickname.toLowerCase().includes(keyword);
+            return quiz.memberNickname.toLowerCase().includes(keyword);
           case 'all':
             return quiz.quizTitle.toLowerCase().includes(keyword) ||
                    quiz.quizCategory.toLowerCase().includes(keyword) ||
                    quiz.quizLevel.toLowerCase().includes(keyword) ||
-                   quiz.nickname.toLowerCase().includes(keyword);
+                   quiz.memberNickname.toLowerCase().includes(keyword);
           default:
             return true;
         }
@@ -167,42 +169,19 @@ export default {
           },
         });
 
-        // 각 퀴즈에 대해 `memberId`를 이용해 `memberNickname` 가져오기
+        // 각 퀴즈에 대해 memberId를 이용해 memberNickname 가져오기
         const quizzesWithNickname = await Promise.all(
           response.data.map(async (quiz) => {
             const createdAt = quiz.createdAt || new Date().toISOString();
-
-            // `memberId`가 있을 경우 닉네임 조회
-            let nickname = '알 수 없음';
-            if (quiz.memberId) {
-              try {
-                const nicknameResponse = await axios.get(
-                  `${beUrl}/api/v1/members/${quiz.memberId}/nickname`,
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                  }
-                );
-                nickname = nicknameResponse.data || '알 수 없음';
-              } catch (error) {
-                console.error("닉네임 조회 실패:", error);
-              }
-            }
-
             return {
-              quizId: quiz.quizId,
-              quizCategory: quiz.quizCategory,
-              quizTitle: quiz.quizTitle,
-              quizLevel: quiz.quizLevel,
-              nickname: nickname, // 조회한 닉네임을 설정
+              ...quiz,
+              memberNickname: quiz.memberId === this.memberId ? this.memberNickname : quiz.memberNickname,
               createdAt: createdAt,
-              views: quiz.count || 0
             };
           })
         );
 
-        this.quizList = quizzesWithNickname.sort((a, b) => b.quizId - a.quizId); // ID 기준 내림차순 정렬
+        this.quizList = quizzesWithNickname.sort((a, b) => b.quizId - a.quizId);
       } catch (error) {
         console.error("퀴즈 목록 조회 실패:", error);
         alert("퀴즈 목록을 불러오는 데 실패했습니다.");
