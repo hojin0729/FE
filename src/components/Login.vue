@@ -63,9 +63,8 @@ export default {
         { withCredentials: true }
         );
         
-        console.log("Full response:", response.data); // 응답 데이터 확인
+        console.log("Full response:", response.data);
 
-        // Bearer 접두어 제거
         const fullToken = response.data;
         const token = fullToken.startsWith("Bearer ") ? fullToken.slice(7) : fullToken;
 
@@ -73,19 +72,21 @@ export default {
           throw new Error("No token found in response");
         }
 
-        // JWT에서 memberId 추출
+        // JWT 디코딩
         const decodedToken = jwtDecode(token);
         const memberId = decodedToken.memberId;
+        const memberNickname = decodedToken.memberNickname;
 
-        if (!memberId) {
-          throw new Error("No memberId found in token");
+        if (!memberId || !memberNickname) {
+          throw new Error("Required information not found in token");
         }
 
-        // 로컬 스토리지에 토큰 및 memberId 저장
+        // localStorage에 저장
         localStorage.setItem("jwtToken", token);
         localStorage.setItem("memberId", memberId);
+        localStorage.setItem("memberNickname", memberNickname);
 
-        this.$router.push("/"); // 메인 페이지로 리디렉션
+        this.$router.push("/");
       } catch (error) {
         console.error("Login failed:", error);
         alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.");

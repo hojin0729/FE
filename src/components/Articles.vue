@@ -25,10 +25,10 @@
           <table class="forum-table">
             <thead>
               <tr>
-                <th style="width: 10%">번호</th>
-                <th style="width: 60%">제목</th>
-                <th style="width: 15%">작성자</th>
-                <th style="width: 15%">작성일</th>
+                <th class="column-10">번호</th>
+                <th class="column-50">제목</th>
+                <th class="column-20">작성자</th>
+                <th class="column-20">작성일</th>
               </tr>
             </thead>
             <tbody>
@@ -291,6 +291,7 @@ export default {
 }
 
 .forum-table {
+  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
   border-top: 2px solid #333;
@@ -301,6 +302,7 @@ export default {
   padding: 12px 15px;
   border-bottom: 1px solid #ddd;
   height: 52px;
+  vertical-align: middle;
 }
 
 .article-row {
@@ -399,5 +401,47 @@ export default {
   .search-input {
     width: 100%;
   }
+}
+
+/* 테이블 컬럼 너비 조정 */
+.column-10 {
+  width: 10%;
+  text-align: center;
+}
+
+.column-50 {
+  width: 50%;
+  text-align: left;
+}
+
+.column-20 {
+  width: 20%;
+  text-align: center;
+}
+
+/* 셀 스타일 조정 */
+.id-cell {
+  text-align: center;
+}
+
+.title-cell {
+  text-align: left;
+  padding-left: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0; /* 말줄임표를 위해 필요 */
+}
+
+.author-cell {
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-cell {
+  text-align: center;
+  white-space: nowrap;
 }
 </style>
