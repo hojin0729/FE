@@ -47,7 +47,7 @@
                     </div>
                   </td>
                   <td class="author-cell">{{ paginatedQuizList[i-1].memberNickname }}</td>
-                  <td class="date-cell">{{ formatDate(paginatedQuizList[i-1].createdAt) }}</td>
+                  <td class="date-cell">{{ formatDate(paginatedQuizList[i-1].date) }}</td>
                 </tr>
                 <tr v-else class="empty-row">
                   <td colspan="4">&nbsp;</td>
@@ -105,8 +105,6 @@ export default {
       itemsPerPage: 10,
       searchType: 'all',
       searchKeyword: '',
-      memberNickname: localStorage.getItem("memberNickname") || "",
-      memberId: localStorage.getItem("memberId") || "",
     };
   },
   computed: {
@@ -169,19 +167,29 @@ export default {
           },
         });
 
-        // 각 퀴즈에 대해 memberId를 이용해 memberNickname 가져오기
-        const quizzesWithNickname = await Promise.all(
-          response.data.map(async (quiz) => {
-            const createdAt = quiz.createdAt || new Date().toISOString();
-            return {
-              ...quiz,
-              memberNickname: quiz.memberId === this.memberId ? this.memberNickname : quiz.memberNickname,
-              createdAt: createdAt,
-            };
-          })
-        );
+        console.log("서버 응답 데이터:", response.data);
 
-        this.quizList = quizzesWithNickname.sort((a, b) => b.quizId - a.quizId);
+        // 백엔드 DTO 구조에 맞게 데이터 매핑
+        this.quizList = response.data.map(quiz => {
+          console.log("개별 퀴즈:", quiz);
+          return {
+            quizId: quiz.quizId,
+            memberNickname: quiz.memberNickname || '알 수 없음',
+            quizCategory: quiz.quizCategory,
+            quizTitle: quiz.quizTitle,
+            quizLevel: quiz.quizLevel,
+            quizAnswer: quiz.quizAnswer,
+            quizDescription: quiz.quizDescription,
+            date: Array.isArray(quiz.date) 
+              ? new Date(quiz.date[0], quiz.date[1]-1, quiz.date[2], 
+                        quiz.date[3], quiz.date[4], quiz.date[5])
+              : new Date(quiz.date),
+            count: quiz.count || 0
+          };
+        });
+
+        this.quizList.sort((a, b) => b.quizId - a.quizId);
+        
       } catch (error) {
         console.error("퀴즈 목록 조회 실패:", error);
         alert("퀴즈 목록을 불러오는 데 실패했습니다.");
@@ -196,14 +204,38 @@ export default {
     goToPage(pageNum) {
       this.currentPage = pageNum;
     },
-    formatDate(dateString) {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\. /g, '-').replace('.', '');
+    formatDate(date) {
+      if (!date) return '';
+      
+      try {
+        if (date instanceof Date) {
+          return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).replace(/\. /g, '-').replace('.', '');
+        }
+        
+        // date가 배열인 경우
+        if (Array.isArray(date)) {
+          const newDate = new Date(date[0], date[1]-1, date[2]);
+          return newDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).replace(/\. /g, '-').replace('.', '');
+        }
+        
+        // 문자열인 경우
+        return new Date(date).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).replace(/\. /g, '-').replace('.', '');
+      } catch (error) {
+        console.error('날짜 변환 실패:', error, date);
+        return '';
+      }
     },
     getDisplayedPages() {
       const totalPages = this.totalPages;
