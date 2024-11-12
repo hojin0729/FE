@@ -27,10 +27,10 @@
           <table class="quiz-table">
             <thead>
               <tr>
-                <th width="10%">번호</th>
-                <th width="50%">제목</th>
-                <th width="20%">작성자</th>
-                <th width="20%">작성일</th>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>작성일</th>
               </tr>
             </thead>
             <tbody>
@@ -315,7 +315,7 @@ export default {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높��를 뺀 값 */
+  min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높을 뺀 값 */
 }
 
 
@@ -607,5 +607,22 @@ export default {
   .quiz-board {
     min-height: calc(100vh - 180px);
   }
+}
+
+/* 기존 스타일에 추가 */
+.quiz-table th:nth-child(1) {
+  width: 10%;
+}
+
+.quiz-table th:nth-child(2) {
+  width: 50%;
+}
+
+.quiz-table th:nth-child(3) {
+  width: 20%;
+}
+
+.quiz-table th:nth-child(4) {
+  width: 20%;
 }
 </style>

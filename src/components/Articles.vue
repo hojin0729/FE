@@ -1,79 +1,81 @@
 <template>
-  <div class="home-page">
-    <AppHeader />
-    <div class="content">
-      <div class="forum-board">
-        <div class="search-area">
-          <div class="total-count">전체 {{ filteredList.length }}건</div>
-          <div class="search-container">
-            <select v-model="searchType" class="search-select">
-              <option value="all">전체</option>
-              <option value="title">제목</option>
-              <option value="author">작성자</option>
-            </select>
-            <input 
-              type="text" 
-              v-model="searchKeyword" 
-              class="search-input" 
-              placeholder="검색어를 입력하세요"
-              @keyup.enter="handleSearch"
-            >
-            <button class="search-button" @click="handleSearch">검색</button>
+  <div class="scroll-container">
+    <div class="home-page">
+      <AppHeader />
+      <div class="content">
+        <div class="forum-board">
+          <div class="search-area">
+            <div class="total-count">전체 {{ filteredList.length }}건</div>
+            <div class="search-container">
+              <select v-model="searchType" class="search-select">
+                <option value="all">전체</option>
+                <option value="title">제목</option>
+                <option value="author">작성자</option>
+              </select>
+              <input 
+                type="text" 
+                v-model="searchKeyword" 
+                class="search-input" 
+                placeholder="검색어를 입력하세요"
+                @keyup.enter="handleSearch"
+              >
+              <button class="search-button" @click="handleSearch">검색</button>
+            </div>
           </div>
-        </div>
-        <div class="table-container">
-          <table class="forum-table">
-            <thead>
-              <tr>
-                <th class="column-10">번호</th>
-                <th class="column-50">제목</th>
-                <th class="column-20">작성자</th>
-                <th class="column-20">작성일</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template v-for="i in itemsPerPage" :key="i">
-                <tr v-if="paginatedArticles[i-1]" @click="viewArticle(paginatedArticles[i-1].articleId)" class="article-row">
-                  <td class="id-cell">{{ paginatedArticles[i-1].articleId }}</td>
-                  <td class="title-cell">{{ paginatedArticles[i-1].articleTitle }}</td>
-                  <td class="author-cell">{{ paginatedArticles[i-1].memberNickname }}</td>
-                  <td class="date-cell">{{ formatDate(paginatedArticles[i-1].createdAt) }}</td>
+          <div class="table-container">
+            <table class="forum-table">
+              <thead>
+                <tr>
+                  <th class="column-10">번호</th>
+                  <th class="column-50">제목</th>
+                  <th class="column-20">작성자</th>
+                  <th class="column-20">작성일</th>
                 </tr>
-                <tr v-else class="empty-row">
-                  <td colspan="4">&nbsp;</td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-          <div class="pagination-container">
-            <div class="dummy-button">글쓰기</div>
-            <div class="pagination-wrapper">
+              </thead>
+              <tbody>
+                <template v-for="i in itemsPerPage" :key="i">
+                  <tr v-if="paginatedArticles[i-1]" @click="viewArticle(paginatedArticles[i-1].articleId)" class="article-row">
+                    <td class="id-cell">{{ paginatedArticles[i-1].articleId }}</td>
+                    <td class="title-cell">{{ paginatedArticles[i-1].articleTitle }}</td>
+                    <td class="author-cell">{{ paginatedArticles[i-1].memberNickname }}</td>
+                    <td class="date-cell">{{ formatDate(paginatedArticles[i-1].createdAt) }}</td>
+                  </tr>
+                  <tr v-else class="empty-row">
+                    <td colspan="4">&nbsp;</td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+            <div class="pagination-container">
+              <div class="dummy-button">글쓰기</div>
+              <div class="pagination-wrapper">
 
-              <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
-                &lt;
-              </button>
-              <div class="page-numbers">
-                <button 
-                  v-for="pageNum in getDisplayedPages()" 
-                  :key="pageNum"
-                  :class="['page-num', { active: currentPage === pageNum }]"
-                  @click="goToPage(pageNum)"
-                >
-                  {{ pageNum }}
+                <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
+                  &lt;
+                </button>
+                <div class="page-numbers">
+                  <button 
+                    v-for="pageNum in getDisplayedPages()" 
+                    :key="pageNum"
+                    :class="['page-num', { active: currentPage === pageNum }]"
+                    @click="goToPage(pageNum)"
+                  >
+                    {{ pageNum }}
+                  </button>
+                </div>
+                <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
+                  &gt;
                 </button>
               </div>
-              <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
-                &gt;
+              <button class="write-button" @click="$router.push('/articleform')">
+                글쓰기
               </button>
             </div>
-            <button class="write-button" @click="$router.push('/articleform')">
-              글쓰기
-            </button>
           </div>
         </div>
       </div>
+      <AppFooter />
     </div>
-    <AppFooter />
   </div>
 </template>
 
@@ -92,7 +94,7 @@ export default {
     return {
       articles: [],
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 7,
       searchType: 'all',
       searchKeyword: '',
     };
@@ -212,16 +214,24 @@ export default {
 </script>
 
 <style scoped>
-/* HomePage.vue의 스타일을 그대로 가져와서 필요한 부분만 수정 */
+.scroll-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1;
+}
+
 .home-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  position: relative;
+  min-height: 100%;
   background-color: #fff;
 }
 
 .content {
-  flex: 1;
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -235,10 +245,12 @@ export default {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 200px);
 }
 
-/* ... HomePage.vue의 나머지 스타일을 그대로 사용 ... */
+.table-container {
+  width: 100%;
+}
+
 .total-count {
   text-align: right;
   margin-top: 10px;
@@ -313,7 +325,6 @@ export default {
   background-color: #f8f9fa;
 }
 
-/* 페이지네이션 스타일 */
 .pagination-container {
   margin-top: 20px;
   display: flex;
@@ -356,38 +367,41 @@ export default {
 
 .write-button {
   width: 76.35px;
-  padding: 8px 20px;
+  padding: 8px 12px;
   background-color: rgba(0, 0, 0, 0.865);
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: background-color 0.2s;
   height: 30px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 .dummy-button {
   width: 76.35px;
-  padding: 8px 20px;
+  padding: 8px 12px;
   background-color: transparent;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: background-color 0.2s;
   height: 30px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .write-button:hover {
   background-color: #020906b3;
 }
 
-/* 반응형 스타일 */
 @media (max-width: 768px) {
   .search-area {
     flex-direction: column;
@@ -403,7 +417,6 @@ export default {
   }
 }
 
-/* 테이블 컬럼 너비 조정 */
 .column-10 {
   width: 10%;
   text-align: center;
@@ -419,7 +432,6 @@ export default {
   text-align: center;
 }
 
-/* 셀 스타일 조정 */
 .id-cell {
   text-align: center;
 }

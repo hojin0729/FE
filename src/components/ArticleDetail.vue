@@ -1,89 +1,91 @@
 <template>
-  <div class="article-detail-page">
-    <AppHeader />
-    <div class="content">
-      <div class="article-container">
-        <div class="article-header">
-          <h1 class="article-title">{{ "제목 : " + article.articleTitle }}</h1>
-          <div class="article-info">
-            <span class="author">작성자: {{ article.memberNickname }}</span>
-            <span class="date">작성일: {{ formatDate(article.createdAt) }}</span>
-          </div>
-        </div>
-        <div class="article-content">
-          {{ article.articleContents }}
-        </div>
-        <div class="comments-section">
-          <h3>댓글</h3>
-          <div class="comment-form">
-            <textarea 
-              v-model="newComment" 
-              placeholder="댓글을 작성해주세요"
-              rows="3"
-              maxlength="500"
-            ></textarea>
-            <div class="comment-form-footer">
-              <span class="char-count">{{ newComment.length }}/500자</span>
-              <button @click="submitComment" class="comment-submit">댓글 작성</button>
+  <div class="scroll-container">
+    <div class="article-detail-page">
+      <AppHeader />
+      <div class="content">
+        <div class="article-container">
+          <div class="article-header">
+            <h1 class="article-title">{{ "제목 : " + article.articleTitle }}</h1>
+            <div class="article-info">
+              <span class="author">작성자: {{ article.memberNickname }}</span>
+              <span class="date">작성일: {{ formatDate(article.createdAt) }}</span>
             </div>
           </div>
-          
-          <div class="comments-list">
-            <div v-for="comment in comments" :key="comment.articleCommentId" class="comment">
-              <div class="comment-header">
-                <div class="comment-left">
-                  <span class="comment-author">작성자: {{ comment.memberNickname }}</span>
-                </div>
-                <div class="comment-right">
-                  <span class="comment-date">
-                    {{ formatDate(comment.articleCommentCreatedAt) }}
-                    <span v-if="comment.articleCommentUpdatedAt" class="edited-mark">(수정됨)</span>
-                  </span>
-                  <div class="comment-actions" v-if="isCurrentUserComment(comment.memberNickname)">
-                    <button 
-                      v-if="!comment.isEditing" 
-                      @click="startEditing(comment)" 
-                      class="edit-btn"
-                    >
-                      수정
-                    </button>
-                    <button 
-                      @click="deleteComment(comment.articleCommentId)" 
-                      class="delete-btn"
-                    >
-                      삭제
-                    </button>
+          <div class="article-content">
+            {{ article.articleContents }}
+          </div>
+          <div class="comments-section">
+            <h3>댓글</h3>
+            <div class="comment-form">
+              <textarea 
+                v-model="newComment" 
+                placeholder="댓글을 작성해주세요"
+                rows="3"
+                maxlength="255"
+              ></textarea>
+              <div class="comment-form-footer">
+                <span class="char-count">{{ newComment.length }}/255자</span>
+                <button @click="submitComment" class="comment-submit">댓글 작성</button>
+              </div>
+            </div>
+            
+            <div class="comments-list">
+              <div v-for="comment in comments" :key="comment.articleCommentId" class="comment">
+                <div class="comment-header">
+                  <div class="comment-left">
+                    <span class="comment-author">작성자: {{ comment.memberNickname }}</span>
+                  </div>
+                  <div class="comment-right">
+                    <span class="comment-date">
+                      {{ formatDate(comment.articleCommentCreatedAt) }}
+                      <span v-if="comment.articleCommentUpdatedAt" class="edited-mark">(수정됨)</span>
+                    </span>
+                    <div class="comment-actions" v-if="isCurrentUserComment(comment.memberNickname)">
+                      <button 
+                        v-if="!comment.isEditing" 
+                        @click="startEditing(comment)" 
+                        class="edit-btn"
+                      >
+                        수정
+                      </button>
+                      <button 
+                        @click="deleteComment(comment.articleCommentId)" 
+                        class="delete-btn"
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div v-if="comment.isEditing" class="edit-form">
-                <textarea 
-                  v-model="comment.editContent" 
-                  rows="3"
-                  maxlength="500"
-                ></textarea>
-                <div class="edit-form-footer">
-                  <span class="char-count">{{ comment.editContent.length }}/500자</span>
-                  <div class="edit-buttons">
-                    <button @click="saveEdit(comment)" class="save-btn">저장</button>
-                    <button @click="cancelEdit(comment)" class="cancel-btn">취소</button>
+                <div v-if="comment.isEditing" class="edit-form">
+                  <textarea 
+                    v-model="comment.editContent" 
+                    rows="3"
+                    maxlength="255"
+                  ></textarea>
+                  <div class="edit-form-footer">
+                    <span class="char-count">{{ comment.editContent.length }}/255자</span>
+                    <div class="edit-buttons">
+                      <button @click="saveEdit(comment)" class="save-btn">저장</button>
+                      <button @click="cancelEdit(comment)" class="cancel-btn">취소</button>
+                    </div>
                   </div>
                 </div>
+                <p v-else class="comment-content">{{ comment.articleCommentContent }}</p>
               </div>
-              <p v-else class="comment-content">{{ comment.articleCommentContent }}</p>
             </div>
           </div>
-        </div>
-        <div class="button-group">
-          <button class="list-button" @click="goToList">목록</button>
-          <div v-if="isAuthor" class="author-buttons">
-            <button class="edit-button" @click="editArticle">수정</button>
-            <button class="delete-button" @click="deleteArticle">삭제</button>
+          <div class="button-group">
+            <button class="list-button" @click="goToList">목록</button>
+            <div v-if="isAuthor" class="author-buttons">
+              <button class="edit-button" @click="editArticle">수정</button>
+              <button class="delete-button" @click="deleteArticle">삭제</button>
+            </div>
           </div>
         </div>
       </div>
+      <AppFooter />
     </div>
-    <AppFooter />
   </div>
 </template>
 
@@ -308,10 +310,29 @@ export default {
 </script>
 
 <style scoped>
+/* App.vue의 스타일을 오버라이드 */
+:deep(#app) {
+  position: relative !important;
+  overflow: auto !important;
+  height: auto !important;
+}
+
+.scroll-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1;
+}
+
 .article-detail-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100%;
+  background-color: #fff;
 }
 
 .content {
@@ -320,7 +341,8 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  padding-top: 80px;
+  padding-top: 120px;
+  padding-bottom: 120px;
 }
 
 .article-container {

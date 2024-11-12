@@ -6,7 +6,7 @@
         <div class="logo-area">
           <img src="@/assets/image.png" alt="DGU" class="logo-image" width="100" height="100">
         </div>
-        <form @submit.prevent="submitLogin">
+        <div class="login-inputs">
           <div class="input-row">
             <input type="email" 
                    id="email" 
@@ -22,7 +22,7 @@
                    required />
           </div>
           <div class="login-button-area">
-            <button type="submit">로그인</button>
+            <button @click="submitLogin">로그인</button>
           </div>
           <div class="login-help">
             <div class="right-links">
@@ -33,7 +33,7 @@
               <router-link to="/signup">회원가입</router-link>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
     <AppFooter />
