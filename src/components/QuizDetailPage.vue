@@ -138,33 +138,38 @@ export default {
         const beUrl = process.env.VUE_APP_BE_API_URL;
         const quizId = this.$route.params.id;
         
-        const response = await axios.get(`${beUrl}/api/v1/quizs/all`, {
+        const response = await axios.get(`${beUrl}/api/v1/quizs/quiz/${quizId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        // 현재 퀴즈 ID와 일치하는 퀴즈 찾기
-        const quizData = response.data.find(quiz => quiz.quizId === parseInt(quizId));
-        
-        if (!quizData) {
-          throw new Error('퀴즈를 찾을 수 없습니다.');
-        }
+        console.log('백엔드 응답 데이터:', response.data);
 
-        console.log('선택된 퀴즈 데이터:', quizData);
-
-        // QuizBoard.vue와 동일한 방식으로 데이터 설정
         this.quiz = {
-          ...quizData,
-          memberNickname: quizData.memberId === this.memberId ? this.memberNickname : quizData.memberNickname,
-          createdAt: quizData.createdAt || new Date().toISOString(),
-          date: quizData.createdAt || new Date().toISOString()
+          quizId: response.data.quizId,
+          quizTitle: response.data.quizTitle,
+          quizCategory: response.data.quizCategory,
+          quizLevel: response.data.quizLevel,
+          quizAnswer: response.data.quizAnswer,
+          quizDescription: response.data.quizDescription,
+          memberNickname: response.data.memberNickname,
+          date: response.data.date,
+          count: response.data.count || 0
         };
 
-        console.log('설정된 퀴즈 데이터:', this.quiz);
+        console.log('매핑된 퀴즈 데이터:', {
+          제목: this.quiz.quizTitle,
+          카테고리: this.quiz.quizCategory,
+          난이도: this.quiz.quizLevel,
+          작성자: this.quiz.memberNickname,
+          작성일: this.quiz.date,
+          원본데이터: response.data
+        });
 
       } catch (error) {
         console.error("퀴즈 상세 정보 조회 실패:", error);
+        console.error('에러 응답:', error.response?.data);
         alert("퀴즈 정보를 불러오는 데 실패했습니다.");
       }
     },

@@ -4,7 +4,7 @@
     <div class="content">
       <div class="quiz-board">
         <div class="search-area">
-          <div class="total-count">전체 {{ filteredList.length }}건</div>
+          <div class="total-count">전체 {{ totalItems }}건</div>
           <div class="search-container">
             <select v-model="searchType" class="search-select">
               <option value="all">전체</option>
@@ -36,7 +36,9 @@
             <tbody>
               <template v-for="i in itemsPerPage" :key="i">
                 <tr v-if="paginatedQuizList[i-1]">
-                  <td class="id-cell">{{ paginatedQuizList[i-1].quizId }}</td>
+                  <td class="id-cell">
+                    {{ totalItems - ((currentPage - 1) * itemsPerPage + (i-1)) }}
+                  </td>
                   <td class="title-cell" @click="goToQuizDetail(paginatedQuizList[i-1].quizId)">
                     <div class="title-wrapper">
                       <span class="title-text">{{ paginatedQuizList[i-1].quizTitle }}</span>
@@ -103,54 +105,50 @@ export default {
       quizList: [],
       currentPage: 1,
       itemsPerPage: 10,
+      totalItems: 0,
       searchType: 'all',
       searchKeyword: '',
     };
   },
   computed: {
     filteredList() {
-      if (!this.searchKeyword) return this.quizList;
-      
-      return this.quizList.filter(quiz => {
-        const keyword = this.searchKeyword.toLowerCase();
-        switch (this.searchType) {
-          case 'title':
-            return quiz.quizTitle.toLowerCase().includes(keyword);
-          case 'category':
-            return quiz.quizCategory.toLowerCase().includes(keyword);
-          case 'level':
-            return quiz.quizLevel.toLowerCase().includes(keyword);
-          case 'author':
-            return quiz.memberNickname.toLowerCase().includes(keyword);
-          case 'all':
-            return quiz.quizTitle.toLowerCase().includes(keyword) ||
-                   quiz.quizCategory.toLowerCase().includes(keyword) ||
-                   quiz.quizLevel.toLowerCase().includes(keyword) ||
-                   quiz.memberNickname.toLowerCase().includes(keyword);
-          default:
-            return true;
-        }
-      });
+      return this.quizList;
     },
     paginatedQuizList() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredList.slice(start, end);
+      return this.quizList;
     },
     totalPages() {
-      return Math.ceil(this.filteredList.length / this.itemsPerPage);
+      return Math.ceil(this.totalItems / this.itemsPerPage);
     },
   },
   methods: {
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
+        await this.fetchQuizList();
       }
     },
-    prevPage() {
+    async prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
+        await this.fetchQuizList();
       }
+    },
+    async goToPage(pageNum) {
+      this.currentPage = pageNum;
+      await this.fetchQuizList();
+    },
+    async goToFirstPage() {
+      this.currentPage = 1;
+      await this.fetchQuizList();
+    },
+    async goToLastPage() {
+      this.currentPage = this.totalPages;
+      await this.fetchQuizList();
+    },
+    async handleSearch() {
+      this.currentPage = 1;
+      await this.fetchQuizList();
     },
     async fetchQuizList() {
       const token = localStorage.getItem("jwtToken");
@@ -161,7 +159,13 @@ export default {
 
       try {
         const beUrl = process.env.VUE_APP_BE_API_URL;
-        const response = await axios.get(beUrl + "/api/v1/quizs/all", {
+        const response = await axios.get(`${beUrl}/api/v1/quizs/all`, {
+          params: {
+            page: this.currentPage - 1,
+            size: this.itemsPerPage,
+            searchType: this.searchType,
+            searchKeyword: this.searchKeyword
+          },
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -169,40 +173,32 @@ export default {
 
         console.log("서버 응답 데이터:", response.data);
 
-        // 백엔드 DTO 구조에 맞게 데이터 매핑
-        this.quizList = response.data.map(quiz => {
-          console.log("개별 퀴즈:", quiz);
-          return {
-            quizId: quiz.quizId,
-            memberNickname: quiz.memberNickname || '알 수 없음',
-            quizCategory: quiz.quizCategory,
-            quizTitle: quiz.quizTitle,
-            quizLevel: quiz.quizLevel,
-            quizAnswer: quiz.quizAnswer,
-            quizDescription: quiz.quizDescription,
-            date: Array.isArray(quiz.date) 
-              ? new Date(quiz.date[0], quiz.date[1]-1, quiz.date[2], 
-                        quiz.date[3], quiz.date[4], quiz.date[5])
-              : new Date(quiz.date),
-            count: quiz.count || 0
-          };
-        });
+        // Page 객체에서 데이터 추출
+        this.quizList = response.data.content.map(quiz => ({
+          quizId: quiz.quizId,
+          memberNickname: quiz.memberNickname || '알 수 없음',
+          quizCategory: quiz.quizCategory,
+          quizTitle: quiz.quizTitle,
+          quizLevel: quiz.quizLevel,
+          quizAnswer: quiz.quizAnswer,
+          quizDescription: quiz.quizDescription,
+          date: quiz.date,
+          count: quiz.count || 0
+        }));
 
-        this.quizList.sort((a, b) => b.quizId - a.quizId);
+        // 페이지네이션 정보 업데이트
+        this.totalItems = response.data.totalElements;
         
       } catch (error) {
         console.error("퀴즈 목록 조회 실패:", error);
         alert("퀴즈 목록을 불러오는 데 실패했습니다.");
       }
     },
-    goToFirstPage() {
-      this.currentPage = 1;
+    createQuiz() {
+      this.$router.push('/quizform');  // router/index.js에 정의된 경로로 이동
     },
-    goToLastPage() {
-      this.currentPage = this.totalPages;
-    },
-    goToPage(pageNum) {
-      this.currentPage = pageNum;
+    goToQuizDetail(quizId) {
+      this.$router.push(`/quiz/${quizId}`);
     },
     formatDate(date) {
       if (!date) return '';
@@ -262,19 +258,19 @@ export default {
       
       return [current - 2, current - 1, current, current + 1, current + 2];
     },
-    handleSearch() {
-      this.currentPage = 1; // 검색 시 첫 페이지로 이동
-    },
-    createQuiz() {
-      this.$router.push('/quizform');  // router/index.js에 정의된 경로로 이동
-    },
-    goToQuizDetail(quizId) {
-      this.$router.push(`/quiz/${quizId}`);
-    }
   },
   watch: {
-    searchType() {
-      this.currentPage = 1; // 검색 타입 변경 시 첫 페이지로 이동
+    searchType: {
+      async handler() {
+        this.currentPage = 1;
+        await this.fetchQuizList();
+      }
+    },
+    searchKeyword: {
+      async handler() {
+        this.currentPage = 1;
+        await this.fetchQuizList();
+      }
     }
   },
   async mounted() {
@@ -319,7 +315,7 @@ export default {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높이를 뺀 값 */
+  min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높��를 뺀 값 */
 }
 
 
