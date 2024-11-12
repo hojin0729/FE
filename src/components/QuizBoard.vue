@@ -11,7 +11,6 @@
               <option value="title">제목</option>
               <option value="category">카테고리</option>
               <option value="level">난이도</option>
-              <option value="author">작성자</option>
             </select>
             <input 
               type="text" 
@@ -34,27 +33,25 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="i in itemsPerPage" :key="i">
-                <tr v-if="paginatedQuizList[i-1]">
-                  <td class="id-cell">
-                    {{ totalItems - ((currentPage - 1) * itemsPerPage + (i-1)) }}
-                  </td>
-                  <td class="title-cell" @click="goToQuizDetail(paginatedQuizList[i-1].quizId)">
+              <template v-for="quiz in paginatedQuizList" :key="quiz.quizId">
+                <tr>
+                  <td class="id-cell">{{ quiz.quizId }}</td>
+                  <td class="title-cell" @click="goToQuizDetail(quiz.quizId)">
                     <div class="title-wrapper">
-                      <span class="title-text">{{ paginatedQuizList[i-1].quizTitle }}</span>
+                      <span class="title-text">{{ quiz.quizTitle }}</span>
                       <span class="badges">
-                        <span class="category-badge">{{ paginatedQuizList[i-1].quizCategory }}</span>
-                        <span class="level-badge">{{ paginatedQuizList[i-1].quizLevel }}</span>
+                        <span class="category-badge">{{ quiz.quizCategory }}</span>
+                        <span class="level-badge">{{ quiz.quizLevel }}</span>
                       </span>
                     </div>
                   </td>
-                  <td class="author-cell">{{ paginatedQuizList[i-1].memberNickname }}</td>
-                  <td class="date-cell">{{ formatDate(paginatedQuizList[i-1].date) }}</td>
-                </tr>
-                <tr v-else class="empty-row">
-                  <td colspan="4">&nbsp;</td>
+                  <td class="author-cell">{{ quiz.memberNickname }}</td>
+                  <td class="date-cell">{{ formatDate(quiz.date) }}</td>
                 </tr>
               </template>
+              <tr v-for="i in emptyRows" :key="`empty-${i}`" class="empty-row">
+                <td colspan="4">&nbsp;</td>
+              </tr>
             </tbody>
           </table>
           <div class="pagination-container">
@@ -95,7 +92,7 @@ import AppFooter from "./Footer.vue";
 import axios from "axios";
 
 export default {
-  name: "HomePage",
+  name: "QuizBoard",
   components: {
     AppHeader,
     AppFooter,
@@ -111,45 +108,18 @@ export default {
     };
   },
   computed: {
-    filteredList() {
-      return this.quizList;
-    },
     paginatedQuizList() {
       return this.quizList;
     },
     totalPages() {
       return Math.ceil(this.totalItems / this.itemsPerPage);
     },
+    emptyRows() {
+      const remainingRows = this.itemsPerPage - this.paginatedQuizList.length;
+      return remainingRows > 0 ? remainingRows : 0;
+    }
   },
   methods: {
-    async nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-        await this.fetchQuizList();
-      }
-    },
-    async prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-        await this.fetchQuizList();
-      }
-    },
-    async goToPage(pageNum) {
-      this.currentPage = pageNum;
-      await this.fetchQuizList();
-    },
-    async goToFirstPage() {
-      this.currentPage = 1;
-      await this.fetchQuizList();
-    },
-    async goToLastPage() {
-      this.currentPage = this.totalPages;
-      await this.fetchQuizList();
-    },
-    async handleSearch() {
-      this.currentPage = 1;
-      await this.fetchQuizList();
-    },
     async fetchQuizList() {
       const token = localStorage.getItem("jwtToken");
       if (!token) {
@@ -159,34 +129,24 @@ export default {
 
       try {
         const beUrl = process.env.VUE_APP_BE_API_URL;
+        const params = {
+          page: this.currentPage - 1,
+          size: this.itemsPerPage
+        };
+
+        if (this.searchKeyword?.trim()) {
+          params.searchType = this.searchType;
+          params.searchKeyword = this.searchKeyword;
+        }
+
         const response = await axios.get(`${beUrl}/api/v1/quizs/all`, {
-          params: {
-            page: this.currentPage - 1,
-            size: this.itemsPerPage,
-            searchType: this.searchType,
-            searchKeyword: this.searchKeyword
-          },
+          params,
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        console.log("서버 응답 데이터:", response.data);
-
-        // Page 객체에서 데이터 추출
-        this.quizList = response.data.content.map(quiz => ({
-          quizId: quiz.quizId,
-          memberNickname: quiz.memberNickname || '알 수 없음',
-          quizCategory: quiz.quizCategory,
-          quizTitle: quiz.quizTitle,
-          quizLevel: quiz.quizLevel,
-          quizAnswer: quiz.quizAnswer,
-          quizDescription: quiz.quizDescription,
-          date: quiz.date,
-          count: quiz.count || 0
-        }));
-
-        // 페이지네이션 정보 업데이트
+        this.quizList = response.data.content;
         this.totalItems = response.data.totalElements;
         
       } catch (error) {
@@ -258,32 +218,52 @@ export default {
       
       return [current - 2, current - 1, current, current + 1, current + 2];
     },
-  },
-  watch: {
-    searchType: {
-      async handler() {
-        this.currentPage = 1;
+    async nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
         await this.fetchQuizList();
       }
     },
-    searchKeyword: {
-      async handler() {
-        this.currentPage = 1;
+    async prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
         await this.fetchQuizList();
+      }
+    },
+    async goToPage(pageNum) {
+      this.currentPage = pageNum;
+      await this.fetchQuizList();
+    },
+    async goToFirstPage() {
+      this.currentPage = 1;
+      await this.fetchQuizList();
+    },
+    async goToLastPage() {
+      this.currentPage = this.totalPages;
+      await this.fetchQuizList();
+    },
+    async handleSearch() {
+      this.currentPage = 1;
+      await this.fetchQuizList();
+    },
+  },
+  watch: {
+    searchType: {
+      handler() {
+        this.currentPage = 1;
+        this.fetchQuizList();
+      }
+    },
+    searchKeyword: {
+      handler() {
+        this.currentPage = 1;
+        this.fetchQuizList();
       }
     }
   },
   async mounted() {
-    const token = localStorage.getItem("jwtToken");
-
-    if (!token) {
-      console.error("로그인이 필요합니다.");
-      this.$router.push("/login");
-      return;
-    }
-
     await this.fetchQuizList();
-  },
+  }
 };
 </script>
 

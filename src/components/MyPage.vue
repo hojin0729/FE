@@ -3,21 +3,18 @@
     <AppHeader />
     <div class="content">
       <div class="games-section">
-        <h2>내 게임 목록</h2>
+        <div class="games-header">
+          <h2>내 게임 목록</h2>
+          <button @click="showAddGameModal" class="add-game-btn">
+            새 게임 만들기
+          </button>
+        </div>
 
         <!-- 게임 목록 -->
         <div class="games-list">
           <div v-for="game in games" :key="game.gameId" class="game-card">
             <div class="game-header">
-              <h3>{{ game.gameName }}</h3>
-              <div class="game-buttons">
-                <button @click="showQuizListModal(game)" class="view-quiz-btn">
-                  퀴즈 목록 보기
-                </button>
-                <button @click="showAddQuizModal(game)" class="add-quiz-btn">
-                  퀴즈 추가
-                </button>
-              </div>
+              <h3 class="game-title">{{ game.gameName }}</h3>
             </div>
             
             <!-- 게임에 포함된 퀴즈 목록 -->
@@ -31,7 +28,19 @@
                   </div>
                 </div>
                 <button @click="removeQuizFromGame(game.gameId, quiz.quizId)" class="remove-btn">
-                  제거
+                  제
+                </button>
+              </div>
+            </div>
+
+            <!-- 버튼을 아래로 이동 -->
+            <div class="game-footer">
+              <div class="game-buttons">
+                <button @click="showQuizListModal(game)" class="view-quiz-btn">
+                  퀴즈 목록 보기
+                </button>
+                <button @click="showAddQuizModal(game)" class="add-quiz-btn">
+                  퀴즈 추가
                 </button>
               </div>
             </div>
@@ -41,52 +50,41 @@
         <!-- 퀴즈 추가 모달 -->
         <div v-if="showQuizModal" class="modal">
           <div class="modal-content">
-            <h3>퀴즈 선택</h3>
+            <h3>퀴즈 추가</h3>
             <div class="search-area">
               <div class="search-container">
-                <select v-model="searchType" class="search-select">
+                <select v-model="quizAddSearchType" class="search-select">
                   <option value="all">전체</option>
                   <option value="title">제목</option>
                   <option value="category">카테고리</option>
                   <option value="level">난이도</option>
-  
                 </select>
                 <input 
-                  v-model="searchKeyword" 
                   type="text" 
-                  placeholder="퀴즈 검색"
-                  class="search-input"
-                  @keyup.enter="handleSearch"
+                  v-model="quizAddSearchKeyword" 
+                  class="search-input" 
+                  placeholder="검색어를 입력하세요"
                 >
-                <button @click="handleSearch" class="search-button">검색</button>
               </div>
             </div>
+
             <div class="quiz-table">
               <table>
                 <thead>
                   <tr>
-                    <th>
-                      <input 
-                        type="checkbox" 
-                        :checked="selectAll" 
-                        @change="toggleSelectAll"
-                      >
-                    </th>
+                    <th><input type="checkbox" v-model="selectAll"></th>
                     <th>제목</th>
                     <th>카테고리</th>
                     <th>난이도</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="quiz in paginatedQuizzes" 
-                      :key="quiz.quizId" 
-                      class="quiz-row"
-                      @click="toggleQuizSelection(quiz)">
-                    <td @click.stop>
+                  <tr v-for="quiz in filteredAddQuizzes" :key="quiz.quizId">
+                    <td>
                       <input 
-                        type="checkbox"
+                        type="checkbox" 
+                        :value="quiz" 
                         v-model="selectedQuizzes"
-                        :value="quiz"
                       >
                     </td>
                     <td>{{ quiz.quizTitle }}</td>
@@ -95,8 +93,8 @@
                   </tr>
                 </tbody>
               </table>
-            
             </div>
+
             <div class="modal-buttons">
               <button @click="addSelectedQuizzes" class="add-selected-btn" :disabled="!selectedQuizzes.length">
                 선택한 퀴즈 추가 ({{ selectedQuizzes.length }}개)
@@ -193,6 +191,41 @@
             </div>
           </div>
         </div>
+
+        <!-- 게임 추가 모달 -->
+        <div v-if="showGameModal" class="modal">
+          <div class="modal-content">
+            <h3>새 게임 만들기</h3>
+            <div class="game-form">
+              <div class="form-group">
+                <label>게임 이름</label>
+                <input 
+                  v-model="newGame.gameName" 
+                  type="text" 
+                  placeholder="게임 이름을 입력하세요"
+                  class="form-input"
+                >
+              </div>
+              <div class="form-group">
+                <label>비밀번호</label>
+                <input 
+                  v-model="newGame.gamePassword" 
+                  type="password" 
+                  placeholder="비밀번호를 입력하세요"
+                  class="form-input"
+                >
+              </div>
+            </div>
+            <div class="modal-buttons">
+              <button @click="createGame" class="create-btn" :disabled="!isValidGame">
+                게임 만들기
+              </button>
+              <button @click="closeGameModal" class="cancel-btn">
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <AppFooter />
@@ -227,43 +260,56 @@ export default {
       quizListSearchKeyword: '',
       currentPage: 1,
       itemsPerPage: 10,
+      totalItems: 0, // 총 퀴즈 수
       quizListCurrentPage: 1,
       quizListItemsPerPage: 10,
+      showGameModal: false,
+      newGame: {
+        gameName: '',
+        gamePassword: ''
+      },
+      quizAddSearchType: 'all',
+      quizAddSearchKeyword: '',
+      quizAddCurrentPage: 1,
+      quizAddItemsPerPage: 10,
+      quizAddTotalItems: 0,
     }
   },
   computed: {
     filteredQuizzes() {
+      if (!this.quizList) return [];
       if (!this.searchKeyword) return this.quizList;
       
       const keyword = this.searchKeyword.toLowerCase();
       return this.quizList.filter(quiz => {
+        if (!quiz) return false;
+        
         switch (this.searchType) {
           case 'title':
-            return quiz.quizTitle.toLowerCase().includes(keyword);
+            return quiz.quizTitle?.toLowerCase().includes(keyword);
           case 'category':
-            return quiz.quizCategory.toLowerCase().includes(keyword);
+            return quiz.quizCategory?.toLowerCase().includes(keyword);
           case 'level':
-            return quiz.quizLevel.toLowerCase().includes(keyword);
-          case 'author':
-            return quiz.nickname.toLowerCase().includes(keyword);
+            return quiz.quizLevel?.toLowerCase().includes(keyword);
           case 'all':
-            return quiz.quizTitle.toLowerCase().includes(keyword) ||
-                   quiz.quizCategory.toLowerCase().includes(keyword) ||
-                   quiz.quizLevel.toLowerCase().includes(keyword) ||
-                   quiz.nickname.toLowerCase().includes(keyword);
+            return (quiz.quizTitle?.toLowerCase().includes(keyword) ||
+                   quiz.quizCategory?.toLowerCase().includes(keyword) ||
+                   quiz.quizLevel?.toLowerCase().includes(keyword));
           default:
             return true;
         }
       });
     },
+
     selectAll: {
       get() {
-        return this.filteredQuizzes.length === this.selectedQuizzes.length;
+        return this.quizList.length > 0 && this.selectedQuizzes.length === this.quizList.length;
       },
       set(value) {
-        this.selectedQuizzes = value ? [...this.filteredQuizzes] : [];
+        this.selectedQuizzes = value ? [...this.quizList] : [];
       }
     },
+
     selectAllCurrentQuizzes: {
       get() {
         return this.currentGameQuizzes.length === this.selectedCurrentQuizzes.length;
@@ -272,91 +318,198 @@ export default {
         this.selectedCurrentQuizzes = value ? [...this.currentGameQuizzes] : [];
       }
     },
+
     filteredCurrentGameQuizzes() {
+      if (!this.currentGameQuizzes) return [];
       if (!this.quizListSearchKeyword) return this.currentGameQuizzes;
       
       const keyword = this.quizListSearchKeyword.toLowerCase();
       return this.currentGameQuizzes.filter(quiz => {
+        if (!quiz) return false;
+        
         switch (this.quizListSearchType) {
           case 'title':
-            return quiz.quizTitle.toLowerCase().includes(keyword);
+            return quiz.quizTitle?.toLowerCase().includes(keyword);
           case 'category':
-            return quiz.quizCategory.toLowerCase().includes(keyword);
+            return quiz.quizCategory?.toLowerCase().includes(keyword);
           case 'level':
-            return quiz.quizLevel.toLowerCase().includes(keyword);
-          case 'author':
-            return quiz.nickname.toLowerCase().includes(keyword);
+            return quiz.quizLevel?.toLowerCase().includes(keyword);
           case 'all':
-            return quiz.quizTitle.toLowerCase().includes(keyword) ||
-                   quiz.quizCategory.toLowerCase().includes(keyword) ||
-                   quiz.quizLevel.toLowerCase().includes(keyword) ||
-                   quiz.nickname.toLowerCase().includes(keyword);
+            return (quiz.quizTitle?.toLowerCase().includes(keyword) ||
+                   quiz.quizCategory?.toLowerCase().includes(keyword) ||
+                   quiz.quizLevel?.toLowerCase().includes(keyword));
           default:
             return true;
         }
       });
     },
+
     paginatedQuizzes() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredQuizzes.slice(start, end);
+      return this.quizList;
     },
+
     totalPages() {
-      return Math.ceil(this.filteredQuizzes.length / this.itemsPerPage);
+      return Math.ceil(this.totalItems / this.itemsPerPage);
     },
+
     paginatedCurrentGameQuizzes() {
+      if (!this.filteredCurrentGameQuizzes) return [];
+      
       const start = (this.quizListCurrentPage - 1) * this.quizListItemsPerPage;
       const end = start + this.quizListItemsPerPage;
       return this.filteredCurrentGameQuizzes.slice(start, end);
     },
+
     quizListTotalPages() {
       return Math.ceil(this.filteredCurrentGameQuizzes.length / this.quizListItemsPerPage);
+    },
+
+    pageDisplay() {
+      return `${this.currentPage}/${this.totalPages}`;
+    },
+
+    isValidGame() {
+      return this.newGame.gameName && this.newGame.gamePassword;
+    },
+
+    quizAddTotalPages() {
+      return Math.ceil(this.quizAddTotalItems / this.quizAddItemsPerPage);
+    },
+
+    filteredAddQuizzes() {
+      if (!this.quizList) return [];
+      if (!this.quizAddSearchKeyword) return this.quizList;
+      
+      const keyword = this.quizAddSearchKeyword.toLowerCase();
+      return this.quizList.filter(quiz => {
+        if (!quiz) return false;
+        
+        switch (this.quizAddSearchType) {
+          case 'title':
+            return quiz.quizTitle?.toLowerCase().includes(keyword);
+          case 'category':
+            return quiz.quizCategory?.toLowerCase().includes(keyword);
+          case 'level':
+            return quiz.quizLevel?.toLowerCase().includes(keyword);
+          case 'all':
+            return (quiz.quizTitle?.toLowerCase().includes(keyword) ||
+                   quiz.quizCategory?.toLowerCase().includes(keyword) ||
+                   quiz.quizLevel?.toLowerCase().includes(keyword));
+          default:
+            return true;
+        }
+      });
+    },
+
+    paginatedAddQuizzes() {
+      const start = (this.quizAddCurrentPage - 1) * this.quizAddItemsPerPage;
+      const end = start + this.quizAddItemsPerPage;
+      return this.filteredAddQuizzes.slice(start, end);
     }
   },
   methods: {
     // 내 게임 목록 조회
     async fetchMyGames() {
       const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) {
+        console.error("로그인이 필요합니다.");
+        this.$router.push("/login");
+        return;
+      }
+
       try {
-        const response = await axios.get(`${process.env.VUE_APP_BE_API_URL}/api/v1/games`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        // /api/v1/games/member/{memberId} 엔드포인트로 변경
+        const response = await axios.get(
+          `${process.env.VUE_APP_BE_API_URL}/api/v1/games/member/${memberId}`, 
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
         this.games = response.data;
       } catch (error) {
         console.error("게임 목록 조회 실패:", error);
+        alert("게임 목록을 오는데 실패했습니다.");
       }
     },
 
     // 전체 퀴즈 목록 조회
-    async fetchQuizList() {
+    async fetchQuizList(page = this.currentPage - 1, size = this.itemsPerPage) {
       const token = localStorage.getItem("jwtToken");
       const beUrl = process.env.VUE_APP_BE_API_URL;
       
       try {
+        // 현재 게임의 퀴즈 목록 가져오기
+        const currentGameResponse = await axios.get(
+          `${beUrl}/api/v1/teacher-quizzes/game/${this.currentGameId}`,
+          { headers: { Authorization: `Bearer ${token}` }}
+        );
+        
+        const existingQuizIds = currentGameResponse.data.map(quiz => quiz.quizId);
+
+        // 전체 퀴즈 목록을 한 번에 가져오기
         const response = await axios.get(`${beUrl}/api/v1/quizs/all`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          params: { 
+            page: 0,
+            size: 9999
+          }
         });
 
-        // 현재 게임에 추가된 퀴즈 ID 목록 가져오기
-        const currentGameQuizIds = this.currentGameQuizzes.map(quiz => quiz.quizId);
+        // 이미 추가된 퀴즈를 제외한 전체 퀴즈
+        const availableQuizzes = response.data.content.filter(
+          quiz => !existingQuizIds.includes(quiz.quizId)
+        );
 
-        // 필터링하여 이미 추가된 퀴즈는 제외
-        this.quizList = response.data.filter(quiz => !currentGameQuizIds.includes(quiz.quizId));
+        // 현재 페이지의 시작과 끝 인덱스 계산
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+
+        // 현재 페이지에 표시할 퀴즈
+        this.quizList = availableQuizzes.slice(startIndex, endIndex).map(quiz => ({
+          quizId: quiz.quizId,
+          memberNickname: quiz.memberNickname || '알 수 없음',
+          quizCategory: quiz.quizCategory,
+          quizTitle: quiz.quizTitle,
+          quizLevel: quiz.quizLevel,
+          quizAnswer: quiz.quizAnswer,
+          quizDescription: quiz.quizDescription,
+          date: quiz.date,
+          count: quiz.count || 0
+        }));
+
+        // 전체 사용 가능한 퀴즈 수
+        const totalAvailableQuizzes = availableQuizzes.length;
+        
+        // 페이지네이션 정보 업데이트 (전체 페이지 수는 처음 계산된 값을 유지)
+        if (!this.totalPages) {
+          this.totalPages = Math.ceil(totalAvailableQuizzes / this.itemsPerPage);
+        }
+        this.totalItems = totalAvailableQuizzes;
+
       } catch (error) {
         console.error("퀴즈 목록 조회 실패:", error);
+        alert("퀴즈 목록을 불러오는 데 실패했습니다.");
       }
     },
 
     // 퀴즈  모달 표시
     async showAddQuizModal(game) {
       this.currentGameId = game.gameId;
-      await this.fetchCurrentGameQuizzes(); // 현재 게임에 추가된 퀴즈 목록 불러오기
-      await this.fetchQuizList(); // 필터링된 퀴즈 목록 불러오기
+      this.currentGame = game;
+      this.currentPage = 1;
+      this.selectedQuizzes = [];
+      this.totalPages = null; // 모달이 열릴 때 totalPages 초기화
+      await this.fetchCurrentGameQuizzes();
+      await this.fetchQuizList(0);
       this.showQuizModal = true;
     },
 
-    handleSearch() {
-      // 검색 시 필요한 로직 추가
+    async handleSearch() {
+      this.currentPage = 1;
+      await this.fetchQuizList();
     },
 
     // 퀴즈 선택 및 게임에 추가
@@ -405,7 +558,7 @@ export default {
         alert("퀴즈가 제거되었습니다.");
       } catch (error) {
         console.error("퀴즈 제거 실패:", error);
-        alert("퀴즈 제거에 실패했습니다.");
+        alert("퀴즈 제거 실패했습니다.");
       }
     },
 
@@ -441,7 +594,7 @@ export default {
 
         await this.fetchMyGames();
         this.closeQuizModal();
-        alert('선택한 퀴즈가 성공적으로 추가되었습니다.');
+        alert('선택한 퀴즈가 성공적로 추가되었습니다.');
       } catch (error) {
         console.error("퀴즈 추가 실패:", error);
         alert("퀴즈 추가에 실패했습니다.");
@@ -468,7 +621,7 @@ export default {
       const beUrl = process.env.VUE_APP_BE_API_URL;
       
       try {
-        // TeacherQuiz 목록을 가져옴 (이미 memberNickname이 포함되어 있음)
+        // TeacherQuiz 목록을 가져옴 (이미 memberNickname이 함되어 있음)
         const teacherQuizResponse = await axios.get(
           `${beUrl}/api/v1/teacher-quizzes/game/${game.gameId}`,
           { headers: { Authorization: `Bearer ${token}` }}
@@ -541,7 +694,7 @@ export default {
 
     async removeSelectedQuizzes() {
       if (!this.selectedCurrentQuizzes.length) {
-        alert('선택된 퀴즈가 없습니다.');
+        alert('선된 퀴즈가 없습니다.');
         return;
       }
 
@@ -560,7 +713,7 @@ export default {
         // 현재 게임의 퀴즈 목록을 다시 불러옴
         await this.showQuizListModal(this.currentGame);
         this.selectedCurrentQuizzes = [];
-        alert('선택한 퀴즈가 성적으로 삭제었습니다.');
+        alert('선택한 퀴즈가 성공적으로 삭제되었습니다.');
       } catch (error) {
         console.error("퀴즈 삭제 실패:", error);
         alert("퀴즈 삭제에 실패했습니다.");
@@ -571,15 +724,17 @@ export default {
       // 퀴즈 목록 보기 검색 처리
     },
 
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
+    async nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        await this.fetchQuizList();
       }
     },
 
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
+    async prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        await this.fetchQuizList();
       }
     },
 
@@ -617,6 +772,62 @@ export default {
       } catch (error) {
         console.error("현재 게임의 퀴즈 목록 조회 실패:", error);
       }
+    },
+
+    showAddGameModal() {
+      this.showGameModal = true;
+      this.newGame = {
+        gameName: '',
+        gamePassword: ''
+      };
+    },
+
+    closeGameModal() {
+      this.showGameModal = false;
+    },
+
+    async createGame() {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_BE_API_URL}/api/v1/games`,
+          {
+            memberId: Number(memberId),
+            gameName: this.newGame.gameName,
+            gamePassword: this.newGame.gamePassword
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (response.data) {
+          await this.fetchMyGames();
+          this.closeGameModal();
+          alert('게임이 성공적으로 생성되었습니다.');
+        }
+      } catch (error) {
+        console.error("게임 생성 실패:", error);
+        alert("게임 생성에 실패했습니다.");
+      }
+    },
+
+    handleAddQuizSearch() {
+      this.quizAddCurrentPage = 1;
+    },
+
+    prevAddQuizPage() {
+      if (this.quizAddCurrentPage > 1) {
+        this.quizAddCurrentPage--;
+      }
+    },
+
+    nextAddQuizPage() {
+      if (this.quizAddCurrentPage < this.quizAddTotalPages) {
+        this.quizAddCurrentPage++;
+      }
     }
   },
   mounted() {
@@ -631,6 +842,7 @@ export default {
   flex-direction: column;
   min-height: 100vh;
   background-color: #fff;
+  overflow: hidden; /* 전체 페이지 스크롤 방지 */
 }
 
 .content {
@@ -639,8 +851,10 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  padding-top: 80px; /* 헤더 높이만큼 여백 */
+  padding-top: 80px;
   padding-bottom: 40px;
+  overflow-y: auto; /* 로 스크롤 활성화 */
+  height: calc(100vh - 120px); /* 헤더와 푸터를 제외한 높이 */
 }
 
 .games-section {
@@ -648,57 +862,95 @@ export default {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 200px); /* 화면 높이에서 헤더/푸터 높이를 뺀 값 */
+  overflow-y: auto; /* 세로 스크롤 활성화 */
+  max-height: calc(100vh - 160px); /* 헤더와 푸터를 제외한 높이 */
 }
 
-/* 기존 스타일 유지하면서 추가 */
-@media (max-height: 900px) {
-  .games-section {
-    min-height: calc(100vh - 180px);
-  }
+/* 스크롤바 숨기기 */
+.games-section::-webkit-scrollbar {
+  display: none; /* 웹킷 기반 브라우저에서 스크롤바 숨기기 */
+}
+
+.games-section {
+  -ms-overflow-style: none;  /* IE 및 Edge에서 스크롤바 숨기기 */
+  scrollbar-width: none;  /* Firefox에서 스크롤바 숨기기 */
 }
 
 .games-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 30px;
   margin-top: 20px;
+  padding: 10px;
 }
 
 .game-card {
   border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 15px;
+  padding: 20px;
   background: white;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 15px;
+  text-align: left;  /* 제목 왼쪽 정렬 */
+}
+
+.game-title {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #333;
 }
 
 .quiz-list {
-  border-top: 1px solid #eee;
-  padding-top: 10px;
+  flex: 1;  /* 남은 공간 채우기 */
+  overflow-y: auto;  /* 내용이 많으면 스크롤 */
+  margin-bottom: 15px;  /* 버튼과의 간격 */
 }
 
-.quiz-item {
+.game-footer {
+  margin-top: auto;  /* 하단에 고정 */
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.game-buttons {
   display: flex;
-  justify-content: space-between;
+  gap: 10px;
+  justify-content: center;  /* 버튼 중앙 정렬 */
+}
+
+.view-quiz-btn, .add-quiz-btn {
+  min-width: 120px;
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f5f5f5;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.view-quiz-btn {
+  background-color: #000000d6;
+  color: white;
 }
 
 .add-quiz-btn {
   background-color: rgba(0, 0, 0, 0.865);
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+/* 호버 효과 */
+.view-quiz-btn:hover, .add-quiz-btn:hover {
+  opacity: 0.9;
 }
 
 .remove-btn {
@@ -847,7 +1099,8 @@ export default {
   color: #666;
 }
 
-.add-selected-btn, .cancel-btn {
+
+.add-selected-btn, .remove-selected-btn, .cancel-btn {
   padding: 10px 20px;
   border-radius: 4px;
   border: none;
@@ -860,49 +1113,18 @@ export default {
   color: white;
 }
 
-.cancel-btn {
-  background-color: #f5f5f5;
-  color: #333;
+.remove-selected-btn {
+  background-color: red;
+  color: white;
 }
 
 .add-selected-btn:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
-
-.game-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.view-quiz-btn {
-  background-color: #000000d6;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.remove-selected-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 .remove-selected-btn:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
-}
-
-.game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
 }
 
 .game-buttons button {
@@ -911,5 +1133,134 @@ export default {
 
 .game-buttons button:hover {
   opacity: 0.9;
+}
+
+/* 스크롤바 스타일링 */
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 반응형 처리 */
+@media (max-height: 900px) {
+  .games-section {
+    height: auto;
+    margin-bottom: 20px;
+  }
+}
+
+/* 스크롤바 스타일링 */
+.games-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.games-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.games-section::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.games-section::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.pagination span {
+  min-width: 60px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.pagination button {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.games-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-game-btn {
+  background-color: #000000;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.game-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #333;
+}
+
+.form-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.create-btn {
+  background-color: #000000;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.create-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>
