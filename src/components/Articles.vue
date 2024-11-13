@@ -1,81 +1,83 @@
 <template>
-  <div class="scroll-container">
-    <div class="home-page">
-      <AppHeader />
-      <div class="content">
-        <div class="forum-board">
-          <div class="search-area">
-            <div class="total-count">전체 {{ filteredList.length }}건</div>
-            <div class="search-container">
-              <select v-model="searchType" class="search-select">
-                <option value="all">전체</option>
-                <option value="title">제목</option>
-                <option value="author">작성자</option>
-              </select>
-              <input 
-                type="text" 
-                v-model="searchKeyword" 
-                class="search-input" 
-                placeholder="검색어를 입력하세요"
-                @keyup.enter="handleSearch"
-              >
-              <button class="search-button" @click="handleSearch">검색</button>
-            </div>
+  <div class="article-board-page">
+    <AppHeader />
+    <div class="content">
+      <div class="forum-board">
+        <div class="search-area">
+          <div class="total-count">전체 {{ filteredList.length }}건</div>
+          <div class="search-container">
+            <select v-model="searchType" class="search-select">
+              <option value="all">전체</option>
+              <option value="title">제목</option>
+              <option value="author">작성자</option>
+            </select>
+            <input 
+              type="text" 
+              v-model="searchKeyword" 
+              class="search-input" 
+              placeholder="검색어를 입력하세요"
+              @keyup.enter="handleSearch"
+            >
+            <button class="search-button" @click="handleSearch">검색</button>
           </div>
-          <div class="table-container">
-            <table class="forum-table">
-              <thead>
+        </div>
+        <div class="table-container">
+          <table class="forum-table">
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>작성일</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="article in paginatedArticles" :key="article.articleId">
                 <tr>
-                  <th class="column-10">번호</th>
-                  <th class="column-50">제목</th>
-                  <th class="column-20">작성자</th>
-                  <th class="column-20">작성일</th>
+                  <td class="id-cell">{{ article.articleId }}</td>
+                  <td class="title-cell" @click="viewArticle(article.articleId)">
+                    <div class="title-wrapper">
+                      <span class="title-text">{{ article.articleTitle }}</span>
+                    </div>
+                  </td>
+                  <td class="author-cell">{{ article.memberNickname }}</td>
+                  <td class="date-cell">{{ formatDate(article.createdAt) }}</td>
                 </tr>
-              </thead>
-              <tbody>
-                <template v-for="i in itemsPerPage" :key="i">
-                  <tr v-if="paginatedArticles[i-1]" @click="viewArticle(paginatedArticles[i-1].articleId)" class="article-row">
-                    <td class="id-cell">{{ paginatedArticles[i-1].articleId }}</td>
-                    <td class="title-cell">{{ paginatedArticles[i-1].articleTitle }}</td>
-                    <td class="author-cell">{{ paginatedArticles[i-1].memberNickname }}</td>
-                    <td class="date-cell">{{ formatDate(paginatedArticles[i-1].createdAt) }}</td>
-                  </tr>
-                  <tr v-else class="empty-row">
-                    <td colspan="4">&nbsp;</td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-            <div class="pagination-container">
-              <div class="dummy-button">글쓰기</div>
+              </template>
+              <tr v-for="i in emptyRows" :key="`empty-${i}`" class="empty-row">
+                <td colspan="4">&nbsp;</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination-container">
+            <div class="pagination">
               <div class="pagination-wrapper">
-
-                <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
-                  &lt;
-                </button>
-                <div class="page-numbers">
-                  <button 
-                    v-for="pageNum in getDisplayedPages()" 
-                    :key="pageNum"
-                    :class="['page-num', { active: currentPage === pageNum }]"
-                    @click="goToPage(pageNum)"
-                  >
-                    {{ pageNum }}
+                <div class="pagination-buttons">
+                  <button class="nav-btn prev" @click="prevPage" :disabled="currentPage === 1">
+                    &lt;
+                  </button>
+                  <div class="page-numbers">
+                    <button 
+                      v-for="pageNum in getDisplayedPages()" 
+                      :key="pageNum"
+                      :class="['page-num', { active: currentPage === pageNum }]"
+                      @click="goToPage(pageNum)"
+                    >
+                      {{ pageNum }}
+                    </button>
+                  </div>
+                  <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
+                    &gt;
                   </button>
                 </div>
-                <button class="nav-btn next" @click="nextPage" :disabled="currentPage === totalPages">
-                  &gt;
-                </button>
               </div>
-              <button class="write-button" @click="$router.push('/articleform')">
-                글쓰기
-              </button>
             </div>
+            <button class="write-button" @click="$router.push('/articleform')">글쓰기</button>
           </div>
         </div>
       </div>
-      <AppFooter />
     </div>
+    <AppFooter />
   </div>
 </template>
 
@@ -141,7 +143,7 @@ export default {
         this.articles = response.data.sort((a, b) => b.articleId - a.articleId);
       } catch (error) {
         console.error("Failed to fetch articles:", error);
-        alert("게시글을 불러오는데 실패했습니다.");
+        alert("게시글을 불러는데 실패했습니다.");
       }
     },
     viewArticle(articleId) {
@@ -214,20 +216,10 @@ export default {
 </script>
 
 <style scoped>
-.scroll-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  z-index: 1;
-}
-
-.home-page {
-  position: relative;
-  min-height: 100%;
+.article-board-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   background-color: #fff;
 }
 
@@ -303,10 +295,10 @@ export default {
 }
 
 .forum-table {
-  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
   border-top: 2px solid #333;
+  table-layout: fixed;
 }
 
 .forum-table th,
@@ -314,7 +306,23 @@ export default {
   padding: 12px 15px;
   border-bottom: 1px solid #ddd;
   height: 52px;
-  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.forum-table th:nth-child(1) {
+  width: 10%;
+}
+
+.forum-table th:nth-child(2) {
+  width: 50%;
+}
+
+.forum-table th:nth-child(3) {
+  width: 20%;
+}
+
+.forum-table th:nth-child(4) {
+  width: 20%;
 }
 
 .article-row {
@@ -326,23 +334,59 @@ export default {
 }
 
 .pagination-container {
-  margin-top: 20px;
+  position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  padding: 0 10px;
-  gap: 38%;
+  padding: 15px 0;
+  margin-top: auto;
+  width: 100%;
+}
+
+.pagination {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;  /* 페이지네이션과 글쓰기 버튼 사이 간격 */
 }
 
 .pagination-wrapper {
   display: flex;
   align-items: center;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
   gap: 5px;
+}
+
+.write-button {
+  margin-left: auto;
+  width: 76.35px;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.865);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .page-numbers {
   display: flex;
   gap: 5px;
+  margin: 0 5px;
+  min-width: 170px;
+  justify-content: center;
 }
 
 .page-num,
@@ -359,28 +403,6 @@ export default {
   color: white;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 20px;  /* 페이지네이션과 글쓰기 버튼 사이 간격 */
-}
-
-.write-button {
-  width: 76.35px;
-  padding: 8px 12px;
-  background-color: rgba(0, 0, 0, 0.865);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
 .dummy-button {
   width: 76.35px;
   padding: 8px 12px;

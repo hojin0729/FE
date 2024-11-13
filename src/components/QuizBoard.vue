@@ -275,9 +275,13 @@ export default {
   background-color: #fff;
 }
 
-.total-count{
+.total-count {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 0;
   text-align: right;
   margin-top: 10px;
+  width: auto;
 }
 
 .content {
@@ -480,12 +484,6 @@ export default {
 
 .date-cell {
   text-align: center;
-}
-
-.total-count {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 0;
 }
 
 .table-container {
