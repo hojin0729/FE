@@ -43,10 +43,15 @@
 <script>
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import AppHeader from "./Header.vue";
+import AppFooter from "./Footer.vue";
 
 export default {
   name: "LoginForm",
-  
+  components: {
+    AppHeader,
+    AppFooter
+  },
   data() {
     return {
       loginData: {
@@ -227,5 +232,4 @@ html, body {
   }
 }
 
-  </style>
-  
+</style>
