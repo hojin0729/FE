@@ -6,12 +6,23 @@
         <!-- 퀴즈 정보 섹션 -->
         <div class="quiz-info">
           <div class="quiz-header">
-            <h2>{{ quiz.quizTitle }}</h2>
+            <!-- 메타 정보를 먼저 배치 -->
             <div class="quiz-meta">
               <span class="category-badge">{{ quiz.quizCategory }}</span>
               <span class="level-badge">{{ quiz.quizLevel }}</span>
               <span class="author">작성자: {{ quiz.memberNickname }}</span>
               <span class="date">작성일: {{ formatDate(quiz.date) }}</span>
+              <img 
+                src="@/assets/Icon.png" 
+                class="bookmark-icon" 
+                :class="{ 'bookmarked': isBookmarked(quiz.quizId) }"
+                @click.stop="toggleBookmark(quiz.quizId)"
+                alt="bookmark"
+              />
+            </div>
+            <!-- 제목을 메타 정보 아래에 배치 -->
+            <div class="title-wrapper">
+              <h2>{{ quiz.quizTitle }}</h2>
             </div>
           </div>
           
@@ -123,6 +134,7 @@ export default {
       currentUserId: null,
       memberNickname: localStorage.getItem("memberNickname") || "",
       memberId: localStorage.getItem("memberId") || "",
+      bookmarks: [],
     };
   },
   methods: {
@@ -321,7 +333,84 @@ export default {
     cancelEdit(comment) {
       comment.isEditing = false;
       comment.editContent = comment.quizCommentContent;
-    }
+    },
+    isBookmarked(quizId) {
+      return this.bookmarks.some(bookmark => bookmark.quizId === quizId) || 
+             localStorage.getItem(`bookmark_${quizId}`) === 'true';
+    },
+    async toggleBookmark(quizId) {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) {
+        alert("로그인이 필요한 서비스입니다.");
+        return;
+      }
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const bookmark = this.bookmarks.find(b => b.quizId === quizId);
+        
+        if (bookmark) {
+          // ���마크 삭제
+          await axios.delete(`${beUrl}/api/v1/bookmarks/${bookmark.bookmarkId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          this.bookmarks = this.bookmarks.filter(b => b.bookmarkId !== bookmark.bookmarkId);
+          // localStorage에서 북마크 상태 제거
+          localStorage.removeItem(`bookmark_${quizId}`);
+        } else {
+          // 북마크 추가
+          const response = await axios.post(
+            `${beUrl}/api/v1/bookmarks`,
+            {
+              memberId: Number(memberId),
+              quizId: Number(quizId)
+            },
+            { headers: { Authorization: `Bearer ${token}` }}
+          );
+          
+          if (response.data) {
+            this.bookmarks.push(response.data);
+            // localStorage에 북마크 상태 저장
+            localStorage.setItem(`bookmark_${quizId}`, 'true');
+          }
+        }
+      } catch (error) {
+        console.error("북마크 처리 실패:", error);
+        alert("북마크 처리에 실패했습니다.");
+      }
+    },
+    async fetchBookmarks() {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) return;
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const response = await axios.get(`${beUrl}/api/v1/bookmarks/member/${memberId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.bookmarks = response.data;
+        
+        // localStorage 초기화 및 업데이트
+        // 먼저 기존의 모든 북마크 관련 localStorage 항목을 제거
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('bookmark_')) {
+            localStorage.removeItem(key);
+          }
+        }
+        
+        // 현재 북마크 상태로 다시 설정
+        this.bookmarks.forEach(bookmark => {
+          localStorage.setItem(`bookmark_${bookmark.quizId}`, 'true');
+        });
+      } catch (error) {
+        console.error("북마크 목록 조회 실패:", error);
+      }
+    },
   },
   async mounted() {
     const memberId = localStorage.getItem("memberId");
@@ -329,6 +418,7 @@ export default {
     
     await this.fetchQuizDetail();
     await this.fetchComments();
+    await this.fetchBookmarks();
   }
 };
 </script>
@@ -388,6 +478,7 @@ export default {
   align-items: center;
   color: #666;
   font-size: 14px;
+  margin-bottom: 20px;
 }
 
 .quiz-info {
@@ -655,6 +746,21 @@ export default {
 
 .cancel-btn:hover {
   background-color: #dee2e6;
+}
+
+.bookmark-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.bookmark-icon:hover {
+  opacity: 0.5;
+}
+
+.bookmark-icon.bookmarked {
+  opacity: 1;
+  filter: invert(28%) sepia(67%) saturate(669%) hue-rotate(346deg) brightness(89%) contrast(83%);
 }
 
 @media (max-width: 768px) {

@@ -65,6 +65,7 @@
                   class="search-input" 
                   placeholder="검색어를 입력하세요"
                 >
+                <button @click="handleQuizListSearch" class="search-button">검색</button>
               </div>
             </div>
 
@@ -76,20 +77,30 @@
                     <th>제목</th>
                     <th>카테고리</th>
                     <th>난이도</th>
+                    <th>북마크</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="quiz in filteredAddQuizzes" :key="quiz.quizId">
-                    <td>
-                      <input 
-                        type="checkbox" 
-                        :value="quiz" 
-                        v-model="selectedQuizzes"
-                      >
+                  <tr v-for="quiz in filteredAddQuizzes" 
+                      :key="quiz.quizId" 
+                      class="quiz-row"
+                      @click="selectQuizForComments(quiz)"
+                      :class="{ 'selected': selectedQuiz?.quizId === quiz.quizId }">
+                    <td @click.stop>
+                      <input type="checkbox" :value="quiz" v-model="selectedQuizzes">
                     </td>
                     <td>{{ quiz.quizTitle }}</td>
                     <td>{{ quiz.quizCategory }}</td>
                     <td>{{ quiz.quizLevel }}</td>
+                    <td @click.stop>
+                      <img 
+                        src="@/assets/Icon.png" 
+                        class="bookmark-icon" 
+                        :class="{ 'bookmarked': isBookmarked(quiz.quizId) }"
+                        @click="toggleBookmark(quiz.quizId)"
+                        alt="bookmark"
+                      />
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -111,9 +122,26 @@
               <button @click="closeQuizModal" class="cancel-btn">닫기</button>
             </div>
           </div>
+
+          <!-- 댓글 모달 -->
+          <div v-if="showCommentsModal" class="comments-modal">
+            <h3>{{ selectedQuiz?.quizTitle }} 댓글</h3>
+            <div class="comments-list">
+              <div v-for="comment in comments" :key="comment.quizCommentId" class="comment">
+                <div class="comment-header">
+                  <div class="comment-left">
+                    <span class="comment-author">{{ comment.memberNickname }}</span>
+                    <span class="comment-date">{{ formatDate(comment.quizCommentCreatedAt) }}</span>
+                  </div>
+                </div>
+                <p class="comment-content">{{ comment.quizCommentContent }}</p>
+              </div>
+            </div>
+            <button @click="closeCommentsModal" class="close-btn">닫기</button>
+          </div>
         </div>
 
-        <!-- 퀴즈 목록 모달 수정 -->
+        <!-- 퀴즈 목록 모달 -->
         <div v-if="showQuizListModalFlag" class="modal">
           <div class="modal-content">
             <h3>현재 게임의 퀴즈 목록</h3>
@@ -139,38 +167,37 @@
               <table>
                 <thead>
                   <tr>
-                    <th>
-                      <input 
-                        type="checkbox" 
-                        :checked="selectAllCurrentQuizzes" 
-                        @change="toggleSelectAllCurrentQuizzes"
-                      >
-                    </th>
+                    <th><input type="checkbox" :checked="selectAllCurrentQuizzes" @change="toggleSelectAllCurrentQuizzes"></th>
                     <th>제목</th>
                     <th>카테고리</th>
                     <th>난이도</th>
+                    <th>북마크</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="quiz in paginatedCurrentGameQuizzes" 
                       :key="quiz.teacherQuizId" 
                       class="quiz-row"
-                      @click="toggleCurrentQuizSelection(quiz)">
+                      @click="selectQuizForComments(quiz)"
+                      :class="{ 'selected': selectedQuiz?.quizId === quiz.quizId }">
                     <td @click.stop>
-                      <input 
-                        type="checkbox"
-                        v-model="selectedCurrentQuizzes"
-                        :value="quiz"
-                      >
+                      <input type="checkbox" v-model="selectedCurrentQuizzes" :value="quiz">
                     </td>
                     <td>{{ quiz.quizTitle }}</td>
                     <td>{{ quiz.quizCategory }}</td>
                     <td>{{ quiz.quizLevel }}</td>
+                    <td @click.stop>
+                      <img src="@/assets/Icon.png" 
+                           class="bookmark-icon" 
+                           :class="{ 'bookmarked': isBookmarked(quiz.quizId) }"
+                           @click="toggleBookmark(quiz.quizId)"
+                           alt="bookmark">
+                    </td>
                   </tr>
                 </tbody>
               </table>
-              
             </div>
+
             <div class="modal-buttons">
               <button 
                 @click="removeSelectedQuizzes" 
@@ -226,6 +253,23 @@
             </div>
           </div>
         </div>
+
+        <!-- 기존 퀴즈 목록 모달은 그대로 두고 새로운 댓글 모달 추가 -->
+        <div v-if="showCommentsModal" class="comments-modal">
+          <div class="modal-content comments-content">
+            <h3>{{ selectedQuiz?.quizTitle }} </h3>
+            <div class="comments-list">
+              <div v-for="comment in comments" :key="comment.quizCommentId" class="comment">
+                <div class="comment-header">
+                  <span class="comment-author">{{ comment.memberNickname }}</span>
+                  <span class="comment-date">{{ formatDate(comment.quizCommentCreatedAt) }}</span>
+                </div>
+                <p class="comment-content">{{ comment.quizCommentContent }}</p>
+              </div>
+            </div>
+            <button @click="closeCommentsModal" class="close-btn">닫기</button>
+          </div>
+        </div>
       </div>
     </div>
     <AppFooter />
@@ -273,6 +317,11 @@ export default {
       quizAddCurrentPage: 1,
       quizAddItemsPerPage: 10,
       quizAddTotalItems: 0,
+      bookmarks: [],
+      selectedQuiz: null,
+      comments: [],
+      memberNickname: localStorage.getItem("memberNickname") || "",
+      showCommentsModal: false,
     }
   },
   computed: {
@@ -430,7 +479,7 @@ export default {
 
         this.games = response.data;
       } catch (error) {
-        console.error("게임 목록 조회 실패:", error);
+        console.error("게임 록 조회 실패:", error);
         alert("게임 목록을 오는데 실패했습니다.");
       }
     },
@@ -545,7 +594,7 @@ export default {
 
     // 게임에서 퀴즈 제거
     async removeQuizFromGame(gameId, quizId) {
-      if (!confirm('이 퀴즈를 게임에서 제거하시겠습니까?')) return;
+      if (!confirm('이 퀴즈를 게임에서 제거하시습니까?')) return;
 
       const token = localStorage.getItem("jwtToken");
       try {
@@ -603,8 +652,11 @@ export default {
 
     closeQuizModal() {
       this.showQuizModal = false;
+      this.showCommentsModal = false;
+      this.selectedQuiz = null;
+      this.comments = [];
+      this.selectedQuizzes = [];
       this.searchKeyword = '';
-      this.selectedQuizzes = []; // 모달 닫 때 선택 기화
     },
 
     toggleQuizSelection(quiz) {
@@ -673,6 +725,9 @@ export default {
 
     closeQuizListModal() {
       this.showQuizListModalFlag = false;
+      this.showCommentsModal = false;
+      this.selectedQuiz = null;
+      this.comments = [];
       this.selectedCurrentQuizzes = [];
       this.currentGame = null;
       this.quizListSearchType = 'all';
@@ -710,7 +765,7 @@ export default {
           );
         }
 
-        // 현재 게임의 퀴즈 목록을 다시 불러옴
+        // 현재 게임의 퀴 목록을 다시 불러옴
         await this.showQuizListModal(this.currentGame);
         this.selectedCurrentQuizzes = [];
         alert('선택한 퀴즈가 성공적으로 삭제되었습니다.');
@@ -828,10 +883,136 @@ export default {
       if (this.quizAddCurrentPage < this.quizAddTotalPages) {
         this.quizAddCurrentPage++;
       }
+    },
+
+    // 북마크 상태 확인
+    isBookmarked(quizId) {
+      return this.bookmarks.some(bookmark => bookmark.quizId === quizId) || 
+             localStorage.getItem(`bookmark_${quizId}`) === 'true';
+    },
+
+    // 북크 토글
+    async toggleBookmark(quizId) {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) return;
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const existingBookmark = this.bookmarks.find(b => b.quizId === quizId);
+
+        if (existingBookmark) {
+          await axios.delete(`${beUrl}/api/v1/bookmarks/${existingBookmark.bookmarkId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          this.bookmarks = this.bookmarks.filter(b => b.quizId !== quizId);
+          localStorage.removeItem(`bookmark_${quizId}`);
+        } else {
+          const response = await axios.post(
+            `${beUrl}/api/v1/bookmarks`,
+            {
+              memberId: Number(memberId),
+              quizId: Number(quizId)
+            },
+            { headers: { Authorization: `Bearer ${token}` }}
+          );
+          
+          if (response.data) {
+            this.bookmarks.push(response.data);
+            localStorage.setItem(`bookmark_${quizId}`, 'true');
+          }
+        }
+      } catch (error) {
+        console.error("북마크 처리 실패:", error);
+        alert("북마크 처리에 실패했습니다.");
+      }
+    },
+
+    // 북마크 목록 조회
+    async fetchBookmarks() {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) return;
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const response = await axios.get(`${beUrl}/api/v1/bookmarks/member/${memberId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.bookmarks = response.data;
+      } catch (error) {
+        console.error("북마크 목록 조회 실패:", error);
+      }
+    },
+
+    async selectQuizForComments(quiz) {
+      this.selectedQuiz = quiz;
+      await this.fetchComments(quiz.quizId);
+      this.showCommentsModal = true;
+    },
+
+    closeCommentsModal() {
+      this.showCommentsModal = false;
+      this.selectedQuiz = null;
+      this.comments = [];
+    },
+
+    async fetchComments(quizId) {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) return;
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const response = await axios.get(`${beUrl}/api/v1/comments/quiz/${quizId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        this.comments = response.data.map(comment => ({
+          ...comment,
+          isEditing: false,
+          editContent: comment.quizCommentContent
+        }));
+      } catch (error) {
+        console.error("댓글 조회 실패:", error);
+      }
+    },
+
+    formatDate(date) {
+      if (!date) return '';
+      
+      try {
+        // Array 형식인 경우 (댓글 날짜)
+        if (Array.isArray(date)) {
+          const year = date[0];
+          const month = String(date[1]).padStart(2, '0');
+          const day = String(date[2]).padStart(2, '0');
+          const hours = String(date[3]).padStart(2, '0');
+          const minutes = String(date[4]).padStart(2, '0');
+          
+          return `${year}-${month}-${day} ${hours}:${minutes}`;
+        } 
+        // ISO 문자열 형식인 경우
+        else {
+          const dateObj = new Date(date);
+          const year = dateObj.getFullYear();
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          const hours = String(dateObj.getHours()).padStart(2, '0');
+          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+          
+          return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+      } catch (error) {
+        console.error('날짜 변환 에러:', error, date);
+        return '';
+      }
     }
   },
   mounted() {
     this.fetchMyGames();
+    this.fetchBookmarks(); // 북마크 목록 초기 로딩
   }
 }
 </script>
@@ -872,7 +1053,7 @@ export default {
 }
 
 .games-section {
-  -ms-overflow-style: none;  /* IE 및 Edge에서 스크롤바 숨기기 */
+  -ms-overflow-style: none;  /* IE 및 Edge에서 스크롤 숨기기 */
   scrollbar-width: none;  /* Firefox에서 스크롤바 숨기기 */
 }
 
@@ -1029,7 +1210,7 @@ export default {
 
 .quiz-table table {
   width: 100%;
-  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .quiz-table th,
@@ -1047,11 +1228,32 @@ export default {
 }
 
 /* 각 열의 너비 조정 */
-.quiz-table td:nth-child(1) { width: 5%; }  /* 체크박스 */
-.quiz-table td:nth-child(2) { width: 40%; } /* 제목 */
-.quiz-table td:nth-child(3) { width: 20%; } /* 카테고리 */
-.quiz-table td:nth-child(4) { width: 15%; } /* 난이도 */
-.quiz-table td:nth-child(5) { width: 20%; } /* 작성자 */
+.quiz-table th:nth-child(1),
+.quiz-table td:nth-child(1) { 
+  width: 5%; 
+}
+
+.quiz-table th:nth-child(2),
+.quiz-table td:nth-child(2) { 
+  width: 45%; 
+}
+
+.quiz-table th:nth-child(3),
+.quiz-table td:nth-child(3) { 
+  width: 20%; 
+}
+
+.quiz-table th:nth-child(4),
+.quiz-table td:nth-child(4) { 
+  width: 20%; 
+}
+
+.quiz-table th:nth-child(5),
+.quiz-table td:nth-child(5) { 
+  width: 10%; 
+  text-align: center;
+  vertical-align: middle;
+}
 
 .modal-buttons {
   display: flex;
@@ -1262,5 +1464,118 @@ export default {
 .create-btn:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+.bookmark-icon {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.bookmark-icon:hover {
+  opacity: 0.5;
+}
+
+.bookmark-icon.bookmarked {
+  opacity: 1;
+  filter: invert(28%) sepia(67%) saturate(669%) hue-rotate(346deg) brightness(89%) contrast(83%);
+}
+
+/* 북마크 열 너비 조정 */
+.quiz-table td:nth-child(5) { 
+  width: 5%; 
+  text-align: center;
+}
+
+.quiz-list-container {
+  display: flex;
+  gap: 20px;
+}
+
+.quiz-table-section {
+  flex: 2;  /* 테이블 영역이 더 넓게 */
+}
+
+.comments-section {
+  flex: 1;  /* 댓글 영역은 더 좁게 */
+  padding-left: 20px;
+  border-left: 1px solid #ddd;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.quiz-row {
+  cursor: pointer;
+}
+
+.quiz-row:hover {
+  background-color: #f5f5f5;
+}
+
+.quiz-row.selected {
+  background-color: #e9ecef;
+}
+
+.comment {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.comment-author {
+  font-weight: bold;
+}
+
+.comment-date {
+  color: #888;
+}
+
+.comment-content {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 5px;
+}
+
+.comments-modal {
+  position: fixed;
+  top: 50%;
+  right: 80px;
+  transform: translateY(-50%);
+  width: 400px;
+  height: 600px;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1); /* 왼쪽에만 그림자 효과 */
+}
+
+.comments-content {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #000;
 }
 </style>

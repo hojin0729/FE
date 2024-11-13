@@ -26,6 +26,7 @@
           <table class="quiz-table">
             <thead>
               <tr>
+                <th style="width: 5%"></th>
                 <th>번호</th>
                 <th>제목</th>
                 <th>작성자</th>
@@ -35,6 +36,15 @@
             <tbody>
               <template v-for="quiz in paginatedQuizList" :key="quiz.quizId">
                 <tr>
+                  <td class="bookmark-cell">
+                    <img 
+                      src="@/assets/Icon.png" 
+                      class="bookmark-icon" 
+                      :class="{ 'bookmarked': isBookmarked(quiz.quizId) }"
+                      @click.stop="toggleBookmark(quiz.quizId)"
+                      alt="bookmark"
+                    />
+                  </td>
                   <td class="id-cell">{{ quiz.quizId }}</td>
                   <td class="title-cell" @click="goToQuizDetail(quiz.quizId)">
                     <div class="title-wrapper">
@@ -50,7 +60,7 @@
                 </tr>
               </template>
               <tr v-for="i in emptyRows" :key="`empty-${i}`" class="empty-row">
-                <td colspan="4">&nbsp;</td>
+                <td colspan="5">&nbsp;</td>
               </tr>
             </tbody>
           </table>
@@ -105,6 +115,7 @@ export default {
       totalItems: 0,
       searchType: 'all',
       searchKeyword: '',
+      bookmarks: [],
     };
   },
   computed: {
@@ -246,6 +257,69 @@ export default {
       this.currentPage = 1;
       await this.fetchQuizList();
     },
+    async fetchBookmarks() {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) return;
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const response = await axios.get(`${beUrl}/api/v1/bookmarks/member/${memberId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.bookmarks = response.data;
+      } catch (error) {
+        console.error("북마크 목록 조회 실패:", error);
+      }
+    },
+    isBookmarked(quizId) {
+      return this.bookmarks.some(bookmark => bookmark.quizId === quizId) || 
+             localStorage.getItem(`bookmark_${quizId}`) === 'true';
+    },
+    async toggleBookmark(quizId) {
+      const token = localStorage.getItem("jwtToken");
+      const memberId = localStorage.getItem("memberId");
+      
+      if (!token || !memberId) {
+        alert("로그인이 필요한 서비스입니다.");
+        return;
+      }
+
+      try {
+        const beUrl = process.env.VUE_APP_BE_API_URL;
+        const bookmark = this.bookmarks.find(b => b.quizId === quizId);
+        
+        if (bookmark) {
+          // 북마크 삭제
+          await axios.delete(`${beUrl}/api/v1/bookmarks/${bookmark.bookmarkId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          this.bookmarks = this.bookmarks.filter(b => b.bookmarkId !== bookmark.bookmarkId);
+          // localStorage에서 북마크 상태 제거
+          localStorage.removeItem(`bookmark_${quizId}`);
+        } else {
+          // 북마크 추가
+          const response = await axios.post(
+            `${beUrl}/api/v1/bookmarks`,
+            {
+              memberId: Number(memberId),
+              quizId: Number(quizId)
+            },
+            { headers: { Authorization: `Bearer ${token}` }}
+          );
+          
+          if (response.data) {
+            this.bookmarks.push(response.data);
+            // localStorage에 북마크 상태 저장
+            localStorage.setItem(`bookmark_${quizId}`, 'true');
+          }
+        }
+      } catch (error) {
+        console.error("북마크 처리 실패:", error);
+        alert("북마크 처리에 실패했습니다.");
+      }
+    },
   },
   watch: {
     searchType: {
@@ -263,6 +337,7 @@ export default {
   },
   async mounted() {
     await this.fetchQuizList();
+    await this.fetchBookmarks();
   }
 };
 </script>
@@ -587,7 +662,7 @@ export default {
   }
 }
 
-/* 기존 스타일에 추가 */
+/* 기 스타일에 가 */
 .quiz-table th:nth-child(1) {
   width: 10%;
 }
@@ -603,4 +678,32 @@ export default {
 .quiz-table th:nth-child(4) {
   width: 20%;
 }
+
+.bookmark-cell {
+  text-align: center;
+  width: 5%;
+}
+
+.bookmark-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.bookmark-icon:hover {
+  opacity: 0.5;
+}
+
+.bookmark-icon.bookmarked {
+  opacity: 1;
+  filter: invert(28%) sepia(67%) saturate(669%) hue-rotate(346deg) brightness(89%) contrast(83%);
+}
+
+
+/* 테이블 열 너비 수정 */
+.quiz-table th:nth-child(1) { width: 5%; }
+.quiz-table th:nth-child(2) { width: 8%; }
+.quiz-table th:nth-child(3) { width: 47%; }
+.quiz-table th:nth-child(4) { width: 20%; }
+.quiz-table th:nth-child(5) { width: 20%; }
 </style>

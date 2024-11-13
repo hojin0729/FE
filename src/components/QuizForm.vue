@@ -148,7 +148,7 @@ body {
 }
 
 .quiz-form h2 {
-  margin-left: 100px;
+  margin-left: 245px;
 }
 
 .quiz-form {
