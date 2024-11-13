@@ -24,12 +24,13 @@
             <div class="title-wrapper">
               <h2>{{ quiz.quizTitle }}</h2>
             </div>
+            <hr class="divider">
           </div>
           
           <!-- 퀴즈 내용 -->
           <div class="quiz-content">
             <div class="quiz-description">
-              <h3>문제 내용</h3>
+              <h3>문제 해설</h3>
               <p>{{ quiz.quizDescription }}</p>
             </div>
             <div class="quiz-answer">
@@ -352,7 +353,7 @@ export default {
         const bookmark = this.bookmarks.find(b => b.quizId === quizId);
         
         if (bookmark) {
-          // ���마크 삭제
+          // 북마크 삭제
           await axios.delete(`${beUrl}/api/v1/bookmarks/${bookmark.bookmarkId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -490,7 +491,7 @@ export default {
 }
 
 .quiz-content {
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .quiz-description h3,
@@ -761,6 +762,14 @@ export default {
 .bookmark-icon.bookmarked {
   opacity: 1;
   filter: invert(28%) sepia(67%) saturate(669%) hue-rotate(346deg) brightness(89%) contrast(83%);
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #ddd;
+  margin: 20px 0;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
