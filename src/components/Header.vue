@@ -3,6 +3,12 @@
     <img src="@/assets/image.png" alt="Header Image" class="header-image" @click="goToHome" />
     <nav class="nav-bar">
       <ul>
+        <li>
+          <a href="/quizboard" @click.prevent="goToQuizBoard">퀴즈게시판</a>
+        </li>
+        <li>
+          <a href="/articles" @click.prevent="goToArticles">자유게시판</a>
+        </li>
         <template v-if="isLoggedIn">
           <li>
             <a href="/mypage" @click.prevent="goToMyPage">마이페이지</a>
@@ -65,6 +71,13 @@ export default {
   router.push('/login');
 }
 
+    function goToQuizBoard() {
+      router.push('/quizboard');
+    }
+
+    function goToArticles() {
+      router.push('/articles');
+    }
 
     return {
       isLoggedIn,
@@ -73,6 +86,8 @@ export default {
       login,
       logout,
       navigateToLogin,
+      goToQuizBoard,
+      goToArticles,
     };
   },
 };
@@ -98,10 +113,15 @@ export default {
   border-bottom: 2px solid #ddd; /* 구분 선 추가 */
 }
 
+.nav-bar {
+  display: flex;
+  align-items: center;
+}
+
 nav ul {
   list-style: none;
   display: flex;
-  gap: 2rem; /* 버튼 사이 간격 늘림 */
+  gap: 1rem;
   margin: 0;
   padding: 0;
   align-items: center;
@@ -113,11 +133,9 @@ nav a {
   padding: 8px 16px;
   border-radius: 4px;
   transition: background-color 0.2s;
+  font-weight: 500; /* 글자를 조금 더 굵게 */
 }
 
-nav a:hover {
-  background-color: #f5f5f5;
-}
 
 .header-image {
   height: 80px; /* 이미지 높이 설정 */
