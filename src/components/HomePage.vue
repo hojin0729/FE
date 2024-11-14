@@ -36,13 +36,13 @@
 
 <script>
 import AppHeader from "./Header.vue";
-import AppFooter from "./Footer.vue";
+// import AppFooter from "./Footer.vue";
 
 export default {
   name: "HomePage",
   components: {
     AppHeader,
-    AppFooter,
+    // AppFooter,
   }
 };
 </script>
