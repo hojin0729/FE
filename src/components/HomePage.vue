@@ -9,9 +9,9 @@
         <div class="sun"></div>
       </div>
 
-      <h1 class="welcome-text">
-        <span class="welcome-highlight">교사 학습 지원 시스템</span>
-      </h1>
+      <div class="title-container">
+        <img src="@/assets/title.png" alt="돈 기브 업!" class="title-image">
+      </div>
 
       <div class="buttons-container">
         <button class="menu-button quiz-button" @click="$router.push('/quizboard')">
@@ -52,62 +52,26 @@ export default {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 100%);
+  background: url('@/assets/dgu_ground.png') no-repeat center center fixed;
+  background-size: cover;
   position: relative;
   overflow: hidden;
 }
 
-.background-decorations {
+.home-container::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.cloud {
-  position: absolute;
-  background: white;
-  border-radius: 20px;
-  animation: float 20s infinite linear;
-}
-
-.cloud1 {
-  width: 100px;
-  height: 40px;
-  top: 20%;
-  left: -100px;
-}
-
-.cloud2 {
-  width: 80px;
-  height: 30px;
-  top: 40%;
-  left: -80px;
-  animation-delay: -5s;
-}
-
-.cloud3 {
-  width: 120px;
-  height: 45px;
-  top: 60%;
-  left: -120px;
-  animation-delay: -10s;
-}
-
-.sun {
-  position: absolute;
-  top: 50px;
-  right: 50px;
-  width: 80px;
-  height: 80px;
-  background: #FFD700;
-  border-radius: 50%;
-  box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 0;
 }
 
 .content {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -116,22 +80,17 @@ export default {
   padding: 20px;
   margin-top: 80px;
   margin-bottom: 40px;
-  position: relative;
-  z-index: 1;
 }
 
-.welcome-text {
-  font-size: 2.5rem;
+.title-container {
   margin-bottom: 50px;
-  text-align: center;
 }
 
-.welcome-highlight {
-  background: white;
-  padding: 15px 30px;
-  border-radius: 50px;
-  color: black;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.title-image {
+  max-width: 500px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .buttons-container {
@@ -215,8 +174,8 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .welcome-text {
-    font-size: 2rem;
+  .title-image {
+    max-width: 300px;
   }
 
   .buttons-container {
