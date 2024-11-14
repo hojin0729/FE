@@ -492,7 +492,7 @@ export default {
       try {
         // 현재 게임의 퀴즈 목록 가져오기
         const currentGameResponse = await axios.get(
-          `${beUrl}/api/v1/teacher-quizzes/game/${this.currentGameId}`,
+          `${beUrl}/api/v1/teacher-quizzes/be/game/${this.currentGameId}`,
           { headers: { Authorization: `Bearer ${token}` }}
         );
         
@@ -675,7 +675,7 @@ export default {
       try {
         // TeacherQuiz 목록을 가져옴 (이미 memberNickname이 함되어 있음)
         const teacherQuizResponse = await axios.get(
-          `${beUrl}/api/v1/teacher-quizzes/game/${game.gameId}`,
+          `${beUrl}/api/v1/teacher-quizzes/be/game/${game.gameId}`,
           { headers: { Authorization: `Bearer ${token}` }}
         );
         
@@ -819,7 +819,7 @@ export default {
       const beUrl = process.env.VUE_APP_BE_API_URL;
 
       try {
-        const response = await axios.get(`${beUrl}/api/v1/teacher-quizzes/game/${this.currentGameId}`, {
+        const response = await axios.get(`${beUrl}/api/v1/teacher-quizzes/be/game/${this.currentGameId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
