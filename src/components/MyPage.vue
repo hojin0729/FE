@@ -1548,14 +1548,15 @@ export default {
 .comments-modal {
   position: fixed;
   top: 50%;
-  right: 80px;
+  right: 0;
   transform: translateY(-50%);
-  width: 400px;
+  width: 380px;
   height: 600px;
   background: white;
-  border-radius: 8px;
+  border-radius: 8px 0 0 8px;
   padding: 20px;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1); /* 왼쪽에만 그림자 효과 */
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
 }
 
 .comments-content {
