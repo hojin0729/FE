@@ -7,7 +7,7 @@
       </div>
 
       <div class="features-container">
-        <div class="feature-card quiz">
+        <div class="feature-card quiz" @click="$router.push('/quizboard')">
           <div class="icon-container">
             하나!
           </div>
@@ -20,7 +20,7 @@
           </ul>
         </div>
 
-        <div class="feature-card community">
+        <div class="feature-card community" @click="$router.push('/articles')">
           <div class="icon-container">
             둘!
           </div>
@@ -33,7 +33,7 @@
           </ul>
         </div>
 
-        <div class="feature-card classroom">
+        <div class="feature-card classroom" @click="$router.push('/mypage')">
           <div class="icon-container">
             셋!
           </div>
@@ -108,12 +108,13 @@ export default {
   width: 100%;
   height: auto;
   object-fit: contain;
+  margin-top: 50px;
 }
 
 .features-container {
   display: flex;
   gap: 30px;
-  margin-top: 50px;
+  margin-top: 20px;
   padding: 0 20px;
   max-width: 1200px;
   width: 100%;
@@ -131,6 +132,7 @@ export default {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
   border: 2px solid #3f2702;
+  cursor: pointer;
 }
 
 .feature-card:hover {

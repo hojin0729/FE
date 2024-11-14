@@ -1,6 +1,5 @@
 <template>
   <div class="container">
-    <AppHeader />
     <div class="login-form">
       <div class="login-content">
         <div class="logo-area">
@@ -36,22 +35,15 @@
         </div>
       </div>
     </div>
-    <AppFooter />
   </div>
 </template>
 
 <script>
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import AppHeader from "./Header.vue";
-import AppFooter from "./Footer.vue";
 
 export default {
   name: "LoginForm",
-  components: {
-    AppHeader,
-    AppFooter
-  },
   data() {
     return {
       loginData: {
@@ -117,22 +109,44 @@ html, body {
 }
 
 .container {
-  width: 100vw; /* 화면 너비 전체 */
-  height: 100vh; /* 화면 높이 전체 */
-  background-color: #f5f6f7;
+  width: 100vw;
+  height: 100vh;
+  background: url('@/assets/dgu_ground.png') no-repeat center center fixed;
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 0;
+}
+
+.login-form {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 100px;
 }
 
 .login-content {
-  width: 450px; /* 가로 크기 고정 */
-  height: 450px; /* 세로 크기 고정 */
-  background-color: white;
+  width: 450px;
+  height: 450px;
+  background: white;
   padding: 40px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #3f2702;
 }
 
 .logo-area {
@@ -167,7 +181,7 @@ html, body {
 .login-button-area button {
   width: 100%;
   height: 50px;
-  background-color: rgba(0, 0, 0, 0.865);
+  background-color: #3f2702;
   color: white;
   border: none;
   border-radius: 6px;
@@ -178,7 +192,7 @@ html, body {
 }
 
 .login-button-area button:hover {
-  background-color: #020906b3;
+  background-color: #5c3803;
 }
 
 .login-help {
@@ -196,14 +210,14 @@ html, body {
 }
 
 .right-links a {
-  color: #888;
+  color: #3f2702;
   text-decoration: none;
   font-size: 13px;
 }
 
 .right-links a:hover {
   text-decoration: underline;
-  color: rgba(0, 0, 0, 0.865);
+  color: #5c3803;
 }
 
 .divider {

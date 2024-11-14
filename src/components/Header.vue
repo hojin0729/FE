@@ -3,12 +3,6 @@
     <img src="@/assets/image.png" alt="Header Image" class="header-image" @click="goToHome" />
     <nav class="nav-bar">
       <ul>
-        <li>
-          <a href="/quizboard" @click.prevent="goToQuizBoard">퀴즈게시판</a>
-        </li>
-        <li>
-          <a href="/articles" @click.prevent="goToArticles">자유게시판</a>
-        </li>
         <template v-if="isLoggedIn">
           <li>
             <a href="/mypage" @click.prevent="goToMyPage">마이페이지</a>
@@ -48,52 +42,27 @@ export default {
     }
 
     function navigateToLogin() {
-      router.push('/login'); // 로그인 페이지로 이동
-    }
-
-    function login() {
-      // 여기에 실제 로그인 로직 추가 (예: 서버에 로그인 요청 후 JWT 토큰 수신)
-      const jwtToken = "exampleToken";
-      localStorage.setItem('jwtToken', jwtToken); // JWT 토큰을 로컬스토리지에 저장
-      isLoggedIn.value = true;
-
-      
+      router.push('/login');
     }
 
     function logout() {
-  // 로그아웃 시 모든 관련 데이터 삭제
-  localStorage.removeItem('jwtToken');
-  localStorage.removeItem('memberId');
-  localStorage.removeItem('memberNickname');
-  isLoggedIn.value = false;
-  
-  // 홈 페이지로 이동
-  router.push('/login');
-}
-
-    function goToQuizBoard() {
-      router.push('/quizboard');
-    }
-
-    function goToArticles() {
-      router.push('/articles');
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('memberId');
+      localStorage.removeItem('memberNickname');
+      isLoggedIn.value = false;
+      router.push('/login');
     }
 
     return {
       isLoggedIn,
       goToHome,
       goToMyPage,
-      login,
       logout,
       navigateToLogin,
-      goToQuizBoard,
-      goToArticles,
     };
   },
 };
 </script>
-
-
 
 <style scoped>
 .app-header {
@@ -135,7 +104,6 @@ nav a {
   transition: background-color 0.2s;
   font-weight: 500; /* 글자를 조금 더 굵게 */
 }
-
 
 .header-image {
   height: 80px; /* 이미지 높이 설정 */
