@@ -1008,6 +1008,9 @@ export default {
         console.error('날짜 변환 에러:', error, date);
         return '';
       }
+    },
+    sortQuizzesById() {
+      this.paginatedCurrentGameQuizzes.sort((a, b) => b.quizId - a.quizId);
     }
   },
   mounted() {

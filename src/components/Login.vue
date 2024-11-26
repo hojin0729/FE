@@ -54,41 +54,56 @@ export default {
   },
   methods: {
     async submitLogin() {
-      try {
-        const beUrl = process.env.VUE_APP_BE_API_URL;
-        const response = await axios.post(beUrl + "/api/v1/members/login", this.loginData,
-        { withCredentials: true }
-        );
-        
-        console.log("Full response:", response.data);
+  try {
+    const beUrl = process.env.VUE_APP_BE_API_URL;
+    const response = await axios.post(
+      beUrl + "/api/v1/members/login", 
+      this.loginData,
+      { withCredentials: true }
+    );
 
-        const fullToken = response.data;
-        const token = fullToken.startsWith("Bearer ") ? fullToken.slice(7) : fullToken;
+    console.log("Full response:", response.data);
 
-        if (!token) {
-          throw new Error("No token found in response");
-        }
-
-        // JWT 디코딩
-        const decodedToken = jwtDecode(token);
-        const memberId = decodedToken.memberId;
-        const memberNickname = decodedToken.memberNickname;
-
-        if (!memberId || !memberNickname) {
-          throw new Error("Required information not found in token");
-        }
-
-        // localStorage에 저장
-        localStorage.setItem("jwtToken", token);
-        localStorage.setItem("memberId", memberId);
-        localStorage.setItem("memberNickname", memberNickname);
-
-        this.$router.push("/");
-      } catch (error) {
-        console.error("Login failed:", error);
-        alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.");
-      }
+    // 토큰 추출
+    const fullToken = response.data.token; // 토큰 값만 추출
+    if (typeof fullToken !== "string") {
+      throw new Error("Token is not a valid string");
     }
+
+    const token = fullToken.startsWith("Bearer ") 
+      ? fullToken.slice(7) 
+      : fullToken;
+
+    if (!token) {
+      throw new Error("No token found in response");
+    }
+
+    // JWT 디코딩
+    const decodedToken = jwtDecode(token);
+    const memberId = decodedToken.memberId;
+    const memberNickname = decodedToken.memberNickname;
+
+    if (!memberId || !memberNickname) {
+      throw new Error("Required information not found in token");
+    }
+
+    // localStorage에 저장
+    localStorage.setItem("jwtToken", token);
+    localStorage.setItem("memberId", memberId);
+    localStorage.setItem("memberNickname", memberNickname);
+
+    this.$router.push("/");
+  } catch (error) {
+    console.error("Login failed:", error);
+
+    // 오류 메시지를 명확히 표시
+    if (error.response && error.response.data) {
+      console.error("API Error Response:", error.response.data);
+    }
+
+    alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.");
+  }
+}
   }
 };
 
