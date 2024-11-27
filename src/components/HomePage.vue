@@ -184,7 +184,7 @@ export default {
   top: 50%; /* 세로 중앙 정렬 */
   left: 50%; /* 가로 중앙 정렬 */
   transform: translate(-50%, -50%); /* 중앙 정렬을 위한 변환 */
-  font-size: 56px; /* 텍스트 크기 */
+  font-size: 54px; /* 텍스트 크기 */
   font-weight: bold; /* 텍스트 굵기 */
   color: white; /* 텍스트 색상 */
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 텍스트 그림자 */
