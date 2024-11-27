@@ -2,7 +2,7 @@
   <div class="home-container">
     <div class="video-container">
       <video autoplay muted loop playsinline class="background-video">
-        <source src="@/assets/123.mp4" type="video/mp4" />
+        <source src="@/assets/bank.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       <AppHeader />
